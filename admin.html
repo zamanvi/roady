@@ -25,8 +25,13 @@ body{background:#000;color:#fff;font-family:ui-sans-serif,system-ui,sans-serif;m
 input::placeholder{color:#374151;}input[type=number]{color:#fff;}
 input[type=range]{-webkit-appearance:none;height:5px;background:#1f2937;border-radius:3px;outline:none;}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;background:#22c55e;border-radius:50%;cursor:pointer;}
+@media(min-width:1024px){
+  #panel-affiliate .card{max-width:480px;}
+  #panel-payouts .space-y-3,#panel-members .space-y-2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+  #panel-payouts .space-y-3>*,#panel-members .space-y-2>*{margin:0;}
+}
 </style></head><body>
-<div class="max-w-md mx-auto px-5 pt-6 pb-16 min-h-screen">
+<div class="max-w-md md:max-w-2xl lg:max-w-4xl mx-auto px-5 pt-6 pb-16 min-h-screen">
 <div class="flex items-center justify-between mb-6">
 <div class="flex items-center gap-2">
 <svg width="30" height="30" viewBox="0 0 34 34" fill="none"><rect width="34" height="34" rx="9" fill="#22c55e"/><path d="M4 20h2l1-4h14l1 4h2a1 1 0 000-2h-1l-1.5-5H8.5L7 18H6a1 1 0 000 2z" fill="white"/><circle cx="10" cy="21.5" r="2" fill="white"/><circle cx="22" cy="21.5" r="2" fill="white"/></svg>
@@ -44,7 +49,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 <button class="tab-btn" id="tab-members" onclick="showAdminTab('members')">Members</button>
 </div>
 <div id="panel-overview">
-<div class="grid grid-cols-2 gap-3 mb-5">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
 <div class="stat"><p class="text-2xl font-black text-green-400">$12,840</p><p class="text-xs text-gray-600 mt-1">Total Revenue</p></div>
 <div class="stat"><p class="text-2xl font-black text-white">247</p><p class="text-xs text-gray-600 mt-1">Total Jobs</p></div>
 <div class="stat"><p class="text-2xl font-black text-blue-400">38</p><p class="text-xs text-gray-600 mt-1">Active Providers</p></div>

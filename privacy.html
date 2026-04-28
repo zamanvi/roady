@@ -22,6 +22,9 @@
   .tbl td{font-size:13px;color:#9ca3af;border-bottom:1px solid #111;padding:10px 12px;vertical-align:top;}
   .tbl tr:last-child td{border-bottom:none;}
   strong{color:#f3f4f6;}
+  .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  @media(min-width:1024px){.max-w-2xl{max-width:52rem;}}
+  @media(max-width:640px){.tbl th,.tbl td{padding:7px 8px;font-size:12px;} h2{font-size:1rem;} h1{font-size:1.75rem;}}
 </style>
 </head>
 <body>
@@ -53,7 +56,7 @@
   <h2 class="text-lg font-black">1. What Information We Collect</h2>
 
   <h3 class="font-bold">1.1 Information You Provide</h3>
-  <table class="tbl">
+  <div class="tbl-wrap"><table class="tbl">
     <thead><tr><th>Data Type</th><th>Who Provides It</th><th>Examples</th></tr></thead>
     <tbody>
       <tr><td><strong>Phone Number</strong></td><td>Customers &amp; Providers</td><td>Used for account verification and SMS updates</td></tr>
@@ -65,7 +68,7 @@
       <tr><td><strong>Vehicle &amp; Service Info</strong></td><td>Providers</td><td>Truck type, year, make, model, plate, service types</td></tr>
       <tr><td><strong>Profile Photos &amp; Media</strong></td><td>Customers</td><td>Photos/videos of vehicle problems submitted with service requests</td></tr>
     </tbody>
-  </table>
+  </table></div>
 
   <h3 class="font-bold">1.2 Information Collected Automatically</h3>
   <ul>
@@ -84,7 +87,7 @@
 
   <!-- ── 2 ── -->
   <h2 class="text-lg font-black">2. How We Use Your Information</h2>
-  <table class="tbl">
+  <div class="tbl-wrap"><table class="tbl">
     <thead><tr><th>Purpose</th><th>Legal Basis (USA/GDPR)</th></tr></thead>
     <tbody>
       <tr><td>Matching customers with providers, dispatching jobs</td><td>Contract performance</td></tr>
@@ -99,7 +102,7 @@
       <tr><td>Sending marketing emails or SMS (opt-in only)</td><td>Consent</td></tr>
       <tr><td>Complying with legal obligations (subpoenas, tax reporting)</td><td>Legal obligation</td></tr>
     </tbody>
-  </table>
+  </table></div>
 
   <!-- ── 3 ── -->
   <h2 class="text-lg font-black">3. How We Share Your Information</h2>
@@ -113,7 +116,7 @@
   </ul>
 
   <h3 class="font-bold">3.2 Service Providers (Sub-processors)</h3>
-  <table class="tbl">
+  <div class="tbl-wrap"><table class="tbl">
     <thead><tr><th>Provider</th><th>Purpose</th><th>Privacy Policy</th></tr></thead>
     <tbody>
       <tr><td>Stripe</td><td>Payment processing &amp; escrow</td><td>stripe.com/privacy</td></tr>
@@ -121,7 +124,7 @@
       <tr><td>Google Maps</td><td>Navigation and location display</td><td>policies.google.com/privacy</td></tr>
       <tr><td>Railway / Cloud Host</td><td>Server infrastructure</td><td>Per hosting provider policy</td></tr>
     </tbody>
-  </table>
+  </table></div>
 
   <h3 class="font-bold">3.3 Legal Requirements</h3>
   <p>We may disclose information when required by law, court order, subpoena, or government request. We may also disclose information to protect the rights, safety, or property of Roady, our users, or the public.</p>
@@ -140,7 +143,7 @@
 
   <!-- ── 5 ── -->
   <h2 class="text-lg font-black">5. Data Retention</h2>
-  <table class="tbl">
+  <div class="tbl-wrap"><table class="tbl">
     <thead><tr><th>Data Type</th><th>Retention Period</th></tr></thead>
     <tbody>
       <tr><td>Account data (name, phone, email)</td><td>Until account deletion + 30 days</td></tr>
@@ -151,7 +154,7 @@
       <tr><td>Communication logs (SMS metadata)</td><td>90 days</td></tr>
       <tr><td>Fraud / security logs</td><td>2 years</td></tr>
     </tbody>
-  </table>
+  </table></div>
 
   <!-- ── 6 ── -->
   <h2 class="text-lg font-black">6. Your Rights</h2>

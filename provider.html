@@ -93,7 +93,27 @@ input,textarea,select{color:#fff;}
 input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
 input[type=range]{-webkit-appearance:none;appearance:none;height:6px;background:#1f2937;border-radius:3px;outline:none;}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;background:#3b82f6;border-radius:50%;cursor:pointer;box-shadow:0 0 8px rgba(59,130,246,.5);}
-
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (min-width:768px){
+  #screen-login .max-w-sm{max-width:420px;}
+  #screen-dashboard .max-w-md,#screen-job .max-w-md,
+  #screen-earnings .max-w-md,#screen-profile .max-w-md{max-width:700px;}
+}
+@media (min-width:1024px){
+  /* Nav → left sidebar */
+  #bottom-nav{right:auto!important;top:0!important;bottom:0!important;width:210px;border-top:none!important;border-right:1px solid #111;}
+  #bottom-nav>div{flex-direction:column;height:100%;padding:24px 10px;gap:4px;align-items:stretch;}
+  .nav-btn{flex:none!important;text-align:left!important;padding:11px 14px!important;border-radius:12px;border-top:none!important;border-left:3px solid transparent;font-size:12px!important;display:flex;align-items:center;gap:10px;}
+  .nav-btn>div{margin-bottom:0!important;font-size:16px!important;}
+  .nav-btn.active{border-top-color:transparent!important;border-left-color:#22c55e;background:#0a0a0a;}
+  /* Screens: offset for sidebar */
+  #screen-dashboard,#screen-job,#screen-earnings,#screen-profile{padding-left:210px;}
+  /* Wider inner containers */
+  #screen-dashboard .max-w-md,#screen-job .max-w-md,
+  #screen-earnings .max-w-md,#screen-profile .max-w-md{max-width:960px;}
+  /* Add Roady logo at top of sidebar */
+  #bottom-nav>div::before{content:"Roady";display:block;color:#22c55e;font-size:20px;font-weight:900;padding:0 14px 20px;letter-spacing:-.5px;}
+}
 </style>
 </head><body>
 <!-- ═══ LOGIN ═══ -->
@@ -161,7 +181,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 </div>
 <!-- ═══ DASHBOARD ═══ -->
 <div id="screen-dashboard" class="screen flex-col" style="background:#000;">
-<div class="flex flex-col flex-1 max-w-md mx-auto w-full pb-20 overflow-y-auto">
+<div class="flex flex-col flex-1 w-full max-w-5xl mx-auto pb-20 overflow-y-auto">
 <div class="px-5 pt-5 pb-3 flex items-center justify-between sticky top-0 z-10" style="background:#000;">
 <div>
 <p class="text-xs text-gray-600 font-semibold uppercase tracking-widest">Dashboard</p>
@@ -199,8 +219,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 <p class="text-sm font-black">Incoming Requests</p>
 <div class="flex items-center gap-2"><span class="w-2 h-2 bg-red-500 rounded-full blink"></span><span id="req-count" class="text-xs font-bold text-red-400">2 new</span></div>
 </div>
-<div class="px-5">
-<div class="card-red p-4 mb-3" id="job-card-1">
+<div class="px-5 lg:grid lg:grid-cols-2 lg:gap-4">
+<div class="card-red p-4 mb-3 lg:mb-0" id="job-card-1">
 <div class="flex items-center justify-between mb-1">
 <div class="flex items-center gap-2"><span class="badge badge-red">&#x1F6A8; URGENT</span><span class="text-xs text-gray-600">1 min ago</span></div>
 <span class="text-lg font-black text-green-400">$95</span>
@@ -312,7 +332,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 </div>
 <!-- ═══ ACTIVE JOB ═══ -->
 <div id="screen-job" class="screen flex-col" style="background:#000;">
-<div class="flex flex-col flex-1 max-w-md mx-auto w-full pb-20 overflow-y-auto">
+<div class="flex flex-col flex-1 w-full max-w-5xl mx-auto pb-20 overflow-y-auto">
 <div class="px-5 pt-5 pb-3 flex items-center gap-3 sticky top-0 z-10" style="background:#000;">
 <button onclick="showTab('dashboard')" class="text-gray-500 text-sm">&#x2190; Back</button>
 <span class="badge badge-green flex-1 text-center">&#x1F7E2; ACTIVE JOB</span>
@@ -376,9 +396,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 </div>
 <!-- ═══ EARNINGS ═══ -->
 <div id="screen-earnings" class="screen flex-col" style="background:#000;">
-<div class="flex flex-col flex-1 max-w-md mx-auto w-full px-5 pt-5 pb-20 overflow-y-auto">
+<div class="flex flex-col flex-1 w-full max-w-5xl mx-auto px-5 pt-5 pb-20 overflow-y-auto">
 <h2 class="text-xl font-black mb-5">Earnings</h2>
-<div class="flex bg-gray-950 border border-gray-800 rounded-2xl p-1 mb-5">
+<div class="flex bg-gray-950 border border-gray-800 rounded-2xl p-1 mb-5 lg:max-w-xs">
 <button id="ep-today" onclick="earnPeriod('today')" class="flex-1 py-2 rounded-xl text-xs font-bold text-gray-500 transition">Today</button>
 <button id="ep-week" onclick="earnPeriod('week')" class="flex-1 py-2 rounded-xl text-xs font-bold bg-green-600 text-white transition">Week</button>
 <button id="ep-month" onclick="earnPeriod('month')" class="flex-1 py-2 rounded-xl text-xs font-bold text-gray-500 transition">Month</button>
@@ -516,7 +536,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 </div>
 <!-- ═══ PROFILE ═══ -->
 <div id="screen-profile" class="screen flex-col" style="background:#000;">
-<div class="flex flex-col flex-1 max-w-md mx-auto w-full px-5 pt-5 pb-20 overflow-y-auto">
+<div class="flex flex-col flex-1 w-full max-w-5xl mx-auto px-5 pt-5 pb-20 overflow-y-auto">
 <div class="flex items-center justify-between mb-5">
 <h2 class="text-xl font-black">Company Profile</h2>
 <button onclick="signOutProvider()" class="text-xs text-red-500 border border-red-900 px-3 py-1.5 rounded-xl font-semibold">Sign Out</button>
