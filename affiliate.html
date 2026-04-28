@@ -1,0 +1,222 @@
+﻿<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Roady — Affiliate Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box;}
+body{background:#000;color:#fff;font-family:ui-sans-serif,system-ui,sans-serif;margin:0;}
+.hidden{display:none!important;}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes pulse-green{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.4)}70%{box-shadow:0 0 0 12px rgba(34,197,94,0)}}
+@keyframes shimmer{0%{left:-60%}100%{left:120%}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.slide-up{animation:slideUp .35s ease forwards;}
+.pulse-cta{animation:pulse-green 2s infinite;}
+.blink{animation:blink 1.4s infinite;}
+::-webkit-scrollbar{width:0;}
+input::placeholder{color:#4b5563;}input{color:#fff;}
+.card{background:#0d0d0d;border:1px solid #1c1c1c;border-radius:18px;}
+.stat{background:#0a0a0a;border:1px solid #1c1c1c;border-radius:16px;padding:16px 10px;text-align:center;}
+.btn-green{background:linear-gradient(135deg,#22c55e,#15803d);box-shadow:0 4px 18px rgba(34,197,94,.35);border-radius:16px;color:#fff;font-weight:800;transition:all .2s;border:none;cursor:pointer;}
+.btn-green:active{transform:scale(.97);}
+.badge{font-size:10px;font-weight:800;padding:3px 9px;border-radius:999px;}
+.badge-green{background:#052e16;color:#4ade80;border:1px solid #166534;}
+.badge-blue{background:#0c1a2e;color:#93c5fd;border:1px solid #1e3a5f;}
+.badge-yellow{background:#1c1300;color:#fbbf24;border:1px solid #92400e;}
+.badge-gray{background:#111;color:#6b7280;border:1px solid #222;}
+.hero-card{background:linear-gradient(135deg,#031a0e,#000);border:1px solid #166534;border-radius:22px;position:relative;overflow:hidden;}
+.hero-card::before{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(34,197,94,.05),transparent);animation:shimmer 4s infinite;}
+.ref-box{background:#050505;border:1px solid #1f2937;border-radius:14px;padding:12px 16px;font-family:monospace;font-size:13px;letter-spacing:.5px;}
+.share-btn{display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 8px;border-radius:16px;font-size:11px;font-weight:700;cursor:pointer;background:#0d0d0d;border:1px solid #1c1c1c;color:#9ca3af;transition:all .2s;}
+.share-btn:active{transform:scale(.93);}
+.ref-row{padding:12px 0;border-bottom:1px solid #0d0d0d;display:flex;align-items:center;justify-content:space-between;}
+.commission-pill{background:linear-gradient(135deg,#064e3b,#052e16);border:1px solid #16a34a;border-radius:12px;padding:10px 14px;text-align:center;}
+</style></head><body>
+<div class="max-w-md mx-auto px-5 pt-6 pb-24 overflow-y-auto min-h-screen">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-2">
+<svg width="32" height="32" viewBox="0 0 34 34" fill="none"><rect width="34" height="34" rx="9" fill="#22c55e"/><path d="M4 20h2l1-4h14l1 4h2a1 1 0 000-2h-1l-1.5-5H8.5L7 18H6a1 1 0 000 2z" fill="white"/><circle cx="10" cy="21.5" r="2" fill="white"/><circle cx="22" cy="21.5" r="2" fill="white"/><rect x="18" y="12" width="8" height="5" rx="1" fill="white" opacity=".3"/></svg>
+<div><p class="text-xl font-black leading-none">Roady</p><p class="text-xs text-green-400 font-bold tracking-wider" id="aff-type-label">AFFILIATE</p></div>
+</div>
+<button onclick="history.back()" class="text-xs text-gray-500 border border-gray-800 px-3 py-1.5 rounded-full">&#x2190; Back</button>
+</div>
+<div class="hero-card p-5 mb-5 slide-up">
+<div class="flex items-center justify-between mb-3">
+<div><p class="text-xs text-gray-500 uppercase tracking-widest font-semibold">Affiliate Account</p><p class="text-lg font-black text-white mt-0.5" id="aff-name">Loading...</p></div>
+<div class="text-right"><span class="badge badge-green" id="aff-status">&#x1F7E2; ACTIVE</span><p class="text-xs text-gray-600 mt-1">ID: <span class="font-mono text-green-400" id="aff-id">---</span></p></div>
+</div>
+<div class="flex gap-2 flex-wrap">
+<span class="badge badge-green" id="aff-type-badge">Customer</span>
+<span class="text-xs text-gray-500 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-green-400 blink"></span>Auto-created with account</span>
+</div>
+</div>
+<div class="mb-5">
+<p class="text-xs text-gray-600 uppercase tracking-widest font-semibold mb-3">Your Commission Structure</p>
+<div class="grid gap-2" id="commission-grid">
+<!-- Populated by JS based on account type -->
+</div>
+</div>
+<div class="grid grid-cols-2 gap-3 mb-5">
+<div class="stat"><p class="text-2xl font-black text-white" id="stat-clicks">0</p><p class="text-xs text-gray-600 mt-1">Link Clicks</p></div>
+<div class="stat"><p class="text-2xl font-black text-green-400" id="stat-signups">0</p><p class="text-xs text-gray-600 mt-1">Signups</p></div>
+<div class="stat"><p class="text-2xl font-black text-white" id="stat-earned">$0</p><p class="text-xs text-gray-600 mt-1">Total Earned</p></div>
+<div class="stat"><p class="text-2xl font-black text-yellow-400" id="stat-pending">$0</p><p class="text-xs text-gray-600 mt-1">Pending Payout</p></div>
+</div>
+<div class="card p-4 mb-5">
+<p class="text-xs text-gray-600 uppercase tracking-widest font-semibold mb-3">Your Referral Link</p>
+<div class="ref-box flex items-center justify-between mb-3">
+<span class="text-green-400 truncate" id="aff-link">roady.app/ref/...</span>
+<button onclick="copyLink()" id="copy-btn" class="ml-3 text-xs text-green-400 font-bold flex-shrink-0 border border-green-800 px-2.5 py-1 rounded-lg">Copy</button>
+</div>
+<div class="grid grid-cols-4 gap-2">
+<button class="share-btn" onclick="doShare('whatsapp')"><span class="text-xl">&#x1F4AC;</span>WhatsApp</button>
+<button class="share-btn" onclick="doShare('sms')"><span class="text-xl">&#x1F4F1;</span>SMS</button>
+<button class="share-btn" onclick="doShare('twitter')"><span class="text-xl">&#x1D54F;</span>Twitter</button>
+<button class="share-btn" onclick="doShare('native')"><span class="text-xl">&#x2B06;</span>Share</button>
+</div>
+</div>
+<div class="card p-4 mb-5">
+<div class="flex items-center justify-between mb-3">
+<p class="text-sm font-black">Payout</p>
+<span class="badge badge-yellow" id="payout-schedule">Weekly</span>
+</div>
+<div class="space-y-2 mb-4">
+<div class="flex justify-between"><span class="text-sm text-gray-500">Available balance</span><span class="text-sm font-black text-green-400" id="payout-avail">$0.00</span></div>
+<div class="flex justify-between"><span class="text-sm text-gray-500">Minimum payout</span><span class="text-sm font-bold text-white" id="payout-min">$20.00</span></div>
+<div class="flex justify-between"><span class="text-sm text-gray-500">Next auto-payout</span><span class="text-sm font-bold text-white">Monday, Apr 28</span></div>
+<div class="flex justify-between"><span class="text-sm text-gray-500">Method</span><span class="text-sm font-bold text-white">Direct Deposit</span></div>
+</div>
+<button onclick="requestPayout()" class="btn-green w-full py-3.5 text-sm">Request Payout Now</button>
+<p id="payout-msg" class="text-xs text-center mt-2 hidden"></p>
+</div>
+<div class="mb-5">
+<div class="flex items-center justify-between mb-3">
+<p class="text-xs text-gray-600 uppercase tracking-widest font-semibold">Referral History</p>
+<span class="badge badge-gray" id="history-count">0 total</span>
+</div>
+<div class="card px-4" id="ref-history">
+<div id="no-refs" class="text-center py-8"><p class="text-gray-600 text-sm">No referrals yet</p><p class="text-xs text-gray-700 mt-1">Share your link to start earning</p></div>
+</div>
+</div>
+<div class="card p-4 mb-4">
+<p class="text-xs text-gray-600 uppercase tracking-widest font-semibold mb-3">How It Works</p>
+<div class="space-y-3">
+<div class="flex items-start gap-3"><div class="w-7 h-7 rounded-full bg-green-900 border border-green-700 flex items-center justify-center text-xs font-bold flex-shrink-0">1</div><div><p class="text-sm font-semibold text-white">Share your unique link</p><p class="text-xs text-gray-500">Via WhatsApp, SMS, social media, or anywhere</p></div></div>
+<div class="flex items-start gap-3"><div class="w-7 h-7 rounded-full bg-green-900 border border-green-700 flex items-center justify-center text-xs font-bold flex-shrink-0">2</div><div><p class="text-sm font-semibold text-white">They sign up &amp; complete action</p><p class="text-xs text-gray-500" id="how-action">Customer books first tow / Provider completes first job</p></div></div>
+<div class="flex items-start gap-3"><div class="w-7 h-7 rounded-full bg-yellow-900 border border-yellow-700 flex items-center justify-center text-xs font-bold flex-shrink-0">$</div><div><p class="text-sm font-semibold text-white">You earn commission automatically</p><p class="text-xs text-gray-500" id="how-earn">Commission credited to your balance</p></div></div>
+</div>
+</div>
+<p class="text-center text-xs text-gray-700 pb-4">Roady Affiliate Program &bull; Questions? support@roady.app</p>
+</div>
+<script>
+// Read admin config from localStorage (set by admin.html)
+function getAdminConfig(){
+  var def={custFlat:10,provFlat:50,provPct:1,minPayout:20,payoutSchedule:"Weekly"};
+  try{var s=localStorage.getItem("roady_admin_aff");return s?Object.assign(def,JSON.parse(s)):def;}catch(e){return def;}
+}
+function genCode(seed){
+  var c="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";var h=0;
+  for(var i=0;i<seed.length;i++){h=(Math.imul(31,h)+seed.charCodeAt(i))|0;}
+  var r="";for(var j=0;j<6;j++){r+=c[Math.abs((h>>(j*4))&0xf)%c.length];}return r;
+}
+function init(){
+  var params=new URLSearchParams(window.location.search);
+  var type=params.get("type")||"customer"; // customer | provider
+  var name=decodeURIComponent(params.get("name")||"");
+  var seed=decodeURIComponent(params.get("seed")||name||"user");
+  var cfg=getAdminConfig();
+  var code=genCode(seed);
+  var isProvider=(type==="provider");
+  var linkBase=isProvider?"roady.app/provider/ref/":"roady.app/ref/";
+  var link=linkBase+code;
+  var affId="AFF-"+(isProvider?"P":"C")+"-"+code;
+  // Header labels
+  document.getElementById("aff-type-label").textContent=isProvider?"PROVIDER AFFILIATE":"CUSTOMER AFFILIATE";
+  document.getElementById("aff-type-badge").textContent=isProvider?"Towing Provider":"Customer";
+  document.getElementById("aff-type-badge").className=isProvider?"badge badge-blue":"badge badge-green";
+  document.getElementById("aff-name").textContent=name||"Your Account";
+  document.getElementById("aff-id").textContent=affId;
+  document.getElementById("aff-link").textContent=link;
+  document.getElementById("aff-link").dataset.full="https://"+link;
+  // Commission grid
+  var grid=document.getElementById("commission-grid");
+  if(isProvider){
+    grid.innerHTML=
+      "<div class=\\"grid grid-cols-2 gap-2\\">"
+      +"<div class=\\"commission-pill\\"><p class=\\"text-xl font-black text-green-400\\">$"+cfg.provFlat+"</p><p class=\\"text-xs text-gray-500 mt-0.5\\">Per provider signup</p></div>"
+      +"<div class=\\"commission-pill\\"><p class=\\"text-xl font-black text-green-400\\">"+cfg.provPct+"%</p><p class=\\"text-xs text-gray-500 mt-0.5\\">Their revenue · 90 days</p></div>"
+      +"</div>";
+    document.getElementById("how-earn").textContent="$"+cfg.provFlat+" on join + "+cfg.provPct+"% of their revenue for 90 days";
+  }else{
+    grid.innerHTML="<div class=\\"commission-pill text-center\\"><p class=\\"text-2xl font-black text-green-400\\">$"+cfg.custFlat+" per referral</p><p class=\\"text-xs text-gray-500 mt-0.5\\">Credited when friend completes first booking</p></div>";
+    document.getElementById("how-earn").textContent="$"+cfg.custFlat+" credited per friend who books their first tow";
+  }
+  // Payout config
+  document.getElementById("payout-min").textContent="$"+cfg.minPayout+".00";
+  document.getElementById("payout-schedule").textContent=cfg.payoutSchedule;
+  // Mock stats (replace with API call)
+  var mockData=isProvider
+    ?{clicks:47,signups:3,earned:180,pending:80}
+    :{clicks:23,signups:2,earned:20,pending:10};
+  document.getElementById("stat-clicks").textContent=mockData.clicks;
+  document.getElementById("stat-signups").textContent=mockData.signups;
+  document.getElementById("stat-earned").textContent="$"+mockData.earned;
+  document.getElementById("stat-pending").textContent="$"+mockData.pending;
+  document.getElementById("payout-avail").textContent="$"+mockData.pending+".00";
+  // Mock referral history
+  var mockRefs=isProvider
+    ?[{n:"Houston Tow LLC",d:"Apr 25",s:"Joined",e:"$50",badge:"badge-green"},{n:"Atlas Roadside",d:"Apr 18",s:"Active · 3 jobs",e:"$8.40",badge:"badge-green"},{n:"TX QuickTow",d:"Apr 10",s:"Pending",e:"$0",badge:"badge-yellow"}]
+    :[{n:"Maria G.",d:"Apr 26",s:"Booked 1st tow",e:"$10",badge:"badge-green"},{n:"James R.",d:"Apr 20",s:"Signed up",e:"$0 · pending",badge:"badge-yellow"}];
+  renderHistory(mockRefs);
+}
+function renderHistory(refs){
+  var box=document.getElementById("ref-history");
+  var noEl=document.getElementById("no-refs");
+  document.getElementById("history-count").textContent=refs.length+" total";
+  if(refs.length===0){noEl.classList.remove("hidden");return;}
+  noEl.classList.add("hidden");
+  refs.forEach(function(r){
+    var row=document.createElement("div");
+    row.className="ref-row";
+    row.innerHTML=
+      "<div class=\\"flex-1 min-w-0\\">"
+      +"<p class=\\"text-sm font-bold text-white\\">"+r.n+"</p>"
+      +"<div class=\\"flex items-center gap-2 mt-0.5\\"><span class=\\"badge "+r.badge+"\\">"+r.s+"</span><span class=\\"text-xs text-gray-600\\">"+r.d+"</span></div>"
+      +"</div>"
+      +"<p class=\\"text-sm font-black text-green-400 ml-3 flex-shrink-0\\">"+r.e+"</p>";
+    box.appendChild(row);
+  });
+}
+function copyLink(){
+  var el=document.getElementById("aff-link");
+  var url=el.dataset.full||"https://"+el.textContent;
+  navigator.clipboard.writeText(url).catch(function(){});
+  var btn=document.getElementById("copy-btn");
+  btn.textContent="Copied!";btn.style.color="#4ade80";
+  setTimeout(function(){btn.textContent="Copy";btn.style.color="";},2000);
+}
+function doShare(ch){
+  var el=document.getElementById("aff-link");
+  var url=el.dataset.full||"https://"+el.textContent;
+  var params=new URLSearchParams(window.location.search);
+  var type=params.get("type")||"customer";
+  var cfg=getAdminConfig();
+  var msg=type==="provider"
+    ?"Join Roady as a towing provider — get real jobs dispatched to you. $"+cfg.provFlat+" signup bonus: "+url
+    :"Need a tow? Try Roady — fastest roadside help in minutes. Use my link: "+url;
+  if(ch==="whatsapp")window.open("https://wa.me/?text="+encodeURIComponent(msg),"_blank");
+  else if(ch==="sms")window.open("sms:?body="+encodeURIComponent(msg));
+  else if(ch==="twitter")window.open("https://twitter.com/intent/tweet?text="+encodeURIComponent(msg),"_blank");
+  else if(ch==="native"&&navigator.share)navigator.share({title:"Roady",text:msg,url:url});
+  else copyLink();
+}
+function requestPayout(){
+  var cfg=getAdminConfig();
+  var avail=parseFloat(document.getElementById("payout-avail").textContent.replace("$",""))||0;
+  var msg=document.getElementById("payout-msg");
+  if(avail<cfg.minPayout){msg.textContent="Minimum payout is $"+cfg.minPayout+". Keep sharing to reach it!";msg.className="text-xs text-center mt-2 text-red-400";msg.classList.remove("hidden");return;}
+  msg.textContent="Payout requested! Processing within 1-2 business days.";msg.className="text-xs text-center mt-2 text-green-400";msg.classList.remove("hidden");
+}
+window.addEventListener("DOMContentLoaded",init);
+</script></body></html>

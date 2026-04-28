@@ -1,0 +1,478 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Roady - AI Towing</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    *{-webkit-tap-highlight-color:transparent;box-sizing:border-box;}
+    body{background:#000;color:#fff;font-family:ui-sans-serif,system-ui,sans-serif;margin:0;}
+    .hidden{display:none!important;}
+    .screen{display:none;flex-direction:column;min-height:100vh;}
+    .screen.active{display:flex;}
+    #preview-img,#preview-vid{border-radius:.75rem;width:100%;display:block;margin-top:1rem;}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes ping{0%{transform:scale(1);opacity:1}75%,100%{transform:scale(2);opacity:0}}
+    .blink{animation:blink 1.4s infinite;}
+    .spin{animation:spin 1s linear infinite;}
+    .ping{animation:ping 1s cubic-bezier(0,0,.2,1) infinite;}
+    .loc-tab{flex:1;padding:8px 4px;border-radius:10px;font-size:12px;font-weight:600;text-align:center;transition:all .2s;background:#1f2937;color:#9ca3af;border:none;cursor:pointer;}
+    .loc-tab.active{background:#2563eb;color:#fff;}
+    .card-selected{border:2px solid #22c55e!important;}
+    .mode-btn{flex:1;padding:14px 8px;border-radius:16px;font-weight:700;font-size:14px;text-align:center;cursor:pointer;border:2px solid transparent;transition:all .2s;}
+    .mode-urgent{background:#1f2937;border-color:#ef4444;}
+    .mode-urgent.selected{background:#7f1d1d;border-color:#ef4444;}
+    .mode-bargain{background:#1f2937;border-color:#2563eb;}
+    .mode-bargain.selected{background:#1e3a8a;border-color:#60a5fa;}
+    .progress-dot{width:8px;height:8px;border-radius:50%;background:#374151;}
+    .progress-dot.done{background:#22c55e;}
+    .progress-dot.active{background:#2563eb;}
+  </style>
+</head><body>
+<!-- PROGRESS BAR (reused) -->
+<template id="tpl-progress"><div class="flex items-center justify-center gap-2 py-2 px-4"><div class="progress-dot done" id="pd1"></div><div class="h-px w-6 bg-gray-700"></div><div class="progress-dot" id="pd2"></div><div class="h-px w-6 bg-gray-700"></div><div class="progress-dot" id="pd3"></div><div class="h-px w-6 bg-gray-700"></div><div class="progress-dot" id="pd4"></div><div class="h-px w-6 bg-gray-700"></div><div class="progress-dot" id="pd5"></div></div></template>
+<!-- ═══ SCREEN 1: CAPTURE ═══ -->
+<div id="screen-capture" class="screen active">
+  <div class="p-4 flex justify-between items-center"><div class="flex items-center gap-2"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="8" fill="#22c55e"/><path d="M4 20h2l1-4h14l1 4h2a1 1 0 000-2h-1l-1.5-5H8.5L7 18H6a1 1 0 000 2z" fill="white"/><circle cx="10" cy="21.5" r="2" fill="white"/><circle cx="22" cy="21.5" r="2" fill="white"/><path d="M20 14l3 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/><rect x="6" y="13" width="8" height="5" rx="1" fill="white" opacity="0.3"/><path d="M16 10v8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M13 10h6" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg><span class="text-xl font-bold tracking-tight">Roady</span></div><div class="flex gap-2 items-center"><div class="progress-dot done"></div><div class="h-px w-4 bg-gray-700"></div><div class="progress-dot active"></div><div class="h-px w-4 bg-gray-700"></div><div class="progress-dot"></div><div class="h-px w-4 bg-gray-700"></div><div class="progress-dot"></div><div class="h-px w-4 bg-gray-700"></div><div class="progress-dot"></div></div></div>
+  <div class="flex flex-col items-center px-6 flex-1 w-full overflow-y-auto"><div class="w-full max-w-md py-4">
+    <h2 class="text-3xl font-bold mb-2 text-center">Need a Tow Now?</h2>
+    <p class="text-gray-400 mb-6 text-center text-sm">Show the problem and we will handle everything instantly</p>
+    <div class="bg-gray-900 p-5 rounded-2xl mb-4"><label class="text-sm text-gray-400 block mb-3">&#x1F4F8; Capture Problem</label><label class="cursor-pointer block bg-gray-800 hover:bg-gray-700 transition p-4 rounded-xl text-center"><input id="media-input" type="file" accept="image/*,video/*" capture="environment" class="hidden"/><div class="text-lg font-medium">Tap to Take Photo / Video</div><div class="text-xs text-gray-400 mt-1">or use camera instantly</div></label><img id="preview-img" class="hidden object-cover" alt="preview"/><video id="preview-vid" class="hidden" controls></video></div>
+    <div class="bg-gray-900 p-5 rounded-2xl mb-4"><label class="text-sm text-gray-400 block mb-2">&#x1F4DE; Phone Number</label><div class="flex gap-2"><span class="bg-gray-800 px-3 py-3 rounded-xl text-sm text-gray-400 whitespace-nowrap">+1</span><input id="phone-input" type="tel" placeholder="(555) 123-4567" class="flex-1 bg-gray-800 p-3 rounded-xl text-sm outline-none text-white"/></div><p class="text-xs text-gray-500 mt-2">We will send a verification code via SMS</p></div>
+    <div class="bg-gray-900 p-4 rounded-2xl mb-6">
+      <div class="flex items-center justify-between mb-3"><span class="text-sm text-gray-400 font-medium">&#x1F4CD; My Location</span><span id="live-badge" class="hidden blink text-xs bg-green-500 text-black px-2 py-0.5 rounded-full font-bold">LIVE</span></div>
+      <div class="flex gap-2 mb-4"><button class="loc-tab active" id="tab-type" onclick="switchLocMode('type')">&#x270F;&#xFE0F; Type</button><button class="loc-tab" id="tab-gps" onclick="switchLocMode('gps')">&#x1F4CD; GPS</button><button class="loc-tab" id="tab-device" onclick="switchLocMode('device')">&#x1F4E1; Live Device</button></div>
+      <div id="loc-mode-type"><input id="manual-addr" type="text" placeholder="Enter your street address..." class="w-full bg-gray-800 p-3 rounded-xl text-sm outline-none text-white mb-2"/><p class="text-xs text-gray-600">Type your address so the driver can find you</p></div>
+      <div id="loc-mode-gps" class="hidden"><button onclick="triggerGPS()" class="w-full bg-gray-800 hover:bg-gray-700 transition py-3 rounded-xl text-sm font-medium mb-3">&#x1F4CD; Get My GPS Location</button><div id="gps-result" class="hidden bg-gray-800 p-3 rounded-xl text-sm"><div id="gps-coords" class="text-white font-mono text-xs"></div><div id="gps-accuracy" class="text-gray-500 text-xs mt-1"></div><a id="gps-link" href="#" target="_blank" class="text-blue-400 underline text-xs mt-1 block">Open in Maps</a></div><p id="gps-status" class="text-xs text-gray-500 text-center"></p></div>
+      <div id="loc-mode-device" class="hidden"><div id="device-idle"><button onclick="startDeviceLive()" class="w-full bg-blue-700 hover:bg-blue-600 transition py-3 rounded-xl text-sm font-semibold mb-2">&#x1F4E1; Allow &amp; Start Live Tracking</button><p class="text-xs text-gray-600 text-center">Continuously updates your location as you move</p></div><div id="device-live" class="hidden"><div class="bg-gray-800 p-3 rounded-xl mb-3"><div id="device-coords" class="text-white font-mono text-xs"></div><div id="device-accuracy" class="text-gray-500 text-xs mt-1"></div><a id="device-link" href="#" target="_blank" class="text-blue-400 underline text-xs mt-1 block">Open in Maps</a></div><button onclick="stopDeviceLive()" class="w-full bg-red-700 hover:bg-red-600 transition py-2 rounded-xl text-sm font-medium">Stop Live Tracking</button></div></div>
+      <div id="share-panel" class="hidden mt-4 border-t border-gray-700 pt-4"><p class="text-xs text-gray-400 font-medium mb-3">&#x1F4E1; Share my location via:</p><div class="grid grid-cols-2 gap-2 mb-2"><button onclick="shareVia('whatsapp')" class="bg-green-700 hover:bg-green-600 transition py-3 rounded-xl text-sm font-medium">&#x1F4AC; WhatsApp</button><button onclick="shareVia('sms')" class="bg-blue-700 hover:bg-blue-600 transition py-3 rounded-xl text-sm font-medium">&#x1F4F1; SMS</button><button id="copy-btn" onclick="shareVia('copy')" class="bg-gray-700 hover:bg-gray-600 transition py-3 rounded-xl text-sm font-medium">&#x1F517; Copy Link</button><button onclick="shareVia('maps')" class="bg-gray-700 hover:bg-gray-600 transition py-3 rounded-xl text-sm font-medium">&#x1F5FA;&#xFE0F; Open Maps</button></div><button id="native-share-btn" onclick="shareVia('native')" class="hidden w-full bg-gray-700 hover:bg-gray-600 transition py-3 rounded-xl text-sm font-medium mb-2">&#x2B06; Share via Device</button><button onclick="shareVia('email')" class="w-full bg-gray-800 hover:bg-gray-700 transition py-2 rounded-xl text-xs text-gray-400">&#x2709;&#xFE0F; Send via Email</button></div>
+    </div>
+    <p id="capture-error" class="text-red-400 text-sm text-center mb-3 hidden"></p>
+    <button id="send-code-btn" onclick="handleSendCode()" class="bg-green-500 w-full py-5 rounded-2xl text-lg font-semibold mb-4 transition">&#x1F680; Request Instant Help</button>
+    <div class="grid grid-cols-3 gap-3 text-xs text-center"><div class="bg-gray-800 py-3 rounded-xl">&#x26A1; Fastest</div><div class="bg-gray-800 py-3 rounded-xl">&#x1F4B0; Cheapest</div><div class="bg-gray-800 py-3 rounded-xl">&#x2B50; Best</div></div>
+  </div></div>
+  <div class="text-center text-xs text-gray-500 pt-4 pb-2">AI Powered &bull; Live Tracking &bull; Secure Payment</div>
+  <div class="text-center pb-8 px-6 pt-1">
+    <p class="text-xs text-gray-700 mb-1">For towing &amp; roadside businesses only</p>
+    <a href="provider.html" class="text-xs text-gray-600 underline underline-offset-2 hover:text-gray-400 transition">Provider / Business Portal &rarr;</a>
+  </div>
+</div>
+<!-- ═══ SCREEN 2: VERIFY ═══ -->
+<div id="screen-verify" class="screen">
+  <div class="p-4 flex justify-between items-center"><button onclick="goTo('screen-capture')" class="text-gray-400 text-sm">&larr;</button><div class="flex items-center gap-2"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="8" fill="#22c55e"/><path d="M4 20h2l1-4h14l1 4h2a1 1 0 000-2h-1l-1.5-5H8.5L7 18H6a1 1 0 000 2z" fill="white"/><circle cx="10" cy="21.5" r="2" fill="white"/><circle cx="22" cy="21.5" r="2" fill="white"/><path d="M20 14l3 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/><rect x="6" y="13" width="8" height="5" rx="1" fill="white" opacity="0.3"/><path d="M16 10v8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M13 10h6" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg><span class="text-xl font-bold tracking-tight">Roady</span></div><div class="flex gap-2 items-center"><div class="progress-dot done"></div><div class="h-px w-4 bg-gray-700"></div><div class="progress-dot done"></div><div class="h-px w-4 bg-gray-700"></div><div class="progress-dot active"></div><div class="h-px w-4 bg-gray-700"></div><div class="progress-dot"></div><div class="h-px w-4 bg-gray-700"></div><div class="progress-dot"></div></div></div>
+  <div class="flex flex-col items-center justify-center flex-1 px-6"><div class="w-full max-w-md">
+    <h2 class="text-3xl font-bold mb-2 text-center">Verify Phone</h2>
+    <p id="verify-subtitle" class="text-gray-400 mb-8 text-center text-sm">Code sent to your number</p>
+    <div class="bg-gray-900 p-5 rounded-2xl mb-4"><label class="text-sm text-gray-400 block mb-2">6-Digit Code</label><input id="code-input" type="tel" inputmode="numeric" placeholder="------" maxlength="6" class="w-full bg-gray-800 p-3 rounded-xl text-center text-2xl font-mono tracking-widest outline-none text-white"/></div>
+    <p id="verify-error" class="text-red-400 text-sm text-center mb-3 hidden"></p>
+    <button id="verify-btn" onclick="handleVerify()" class="bg-green-500 w-full py-5 rounded-2xl text-lg font-semibold mb-4 transition">&#x2705; Verify &amp; Create Account</button>
+    <button onclick="handleSendCode(true)" class="w-full text-center text-sm text-gray-400 underline">Resend code</button>
+  </div></div>
+  <div class="text-center text-xs text-gray-500 py-6">AI Powered &bull; Live Tracking &bull; Secure Payment</div>
+</div>
+<!-- ═══ SCREEN 3: AI DISPATCH ═══ -->
+<div id="screen-dispatch" class="screen">
+  <div class="p-4 flex justify-between items-center"><div class="flex items-center gap-2"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="8" fill="#22c55e"/><path d="M4 20h2l1-4h14l1 4h2a1 1 0 000-2h-1l-1.5-5H8.5L7 18H6a1 1 0 000 2z" fill="white"/><circle cx="10" cy="21.5" r="2" fill="white"/><circle cx="22" cy="21.5" r="2" fill="white"/><path d="M20 14l3 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/><rect x="6" y="13" width="8" height="5" rx="1" fill="white" opacity="0.3"/><path d="M16 10v8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M13 10h6" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg><span class="text-xl font-bold tracking-tight">Roady</span></div><button onclick="openProfile(currentScreenId())" id="profile-btn" class="w-9 h-9 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition border-2 border-gray-600" title="Profile"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="8" r="4" fill="#9ca3af"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/></svg></button></div>
+  <div class="flex flex-col items-center px-6 flex-1 justify-center"><div class="w-full max-w-md">
+    <div class="bg-green-900 bg-opacity-40 border border-green-700 rounded-2xl p-3 mb-6 flex items-center gap-3"><span class="text-2xl">&#x2705;</span><div><div class="text-sm font-semibold text-green-300">Account Created!</div><div id="dispatch-phone" class="text-xs text-green-400"></div></div></div>
+    <div class="flex flex-col items-center mb-8"><div class="relative mb-4"><div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center text-4xl z-10 relative">&#x1F916;</div><div class="absolute inset-0 bg-green-500 rounded-full ping opacity-30"></div></div><h2 class="text-2xl font-bold mb-1">Roady AI is calling you</h2><p class="text-gray-400 text-sm text-center">Confirming pickup &amp; destination<br/>within 5&#x2013;10 seconds</p></div>
+    <div class="bg-gray-900 rounded-2xl p-4 mb-6 space-y-3">
+      <div class="flex items-center gap-3"><div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-xs font-bold">&#x2713;</div><span class="text-sm text-gray-300">Request received &amp; account created</span></div>
+      <div class="flex items-center gap-3"><div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-xs font-bold">&#x2713;</div><span class="text-sm text-gray-300">Location detected</span></div>
+      <div class="flex items-center gap-3"><div class="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center spin text-xs">&#x25CB;</div><span class="text-sm text-white font-medium">AI calling to confirm details...</span></div>
+      <div class="flex items-center gap-3"><div class="w-6 h-6 bg-gray-700 rounded-full flex items-center justify-center text-xs text-gray-500">4</div><span class="text-sm text-gray-600">Dispatching nearest provider</span></div>
+    </div>
+    <button onclick="goTo('screen-mode')" class="bg-green-500 hover:bg-green-400 w-full py-4 rounded-2xl text-sm font-semibold mb-3 transition">AI confirmed &#x2192; Choose Mode</button>
+    <p class="text-xs text-gray-600 text-center">Missed the call? <button onclick="goTo('screen-mode')" class="text-blue-400 underline">Continue manually</button></p>
+  </div></div>
+  <div class="text-center text-xs text-gray-600 py-6">AI Powered &bull; Real-time Dispatch &bull; Secure Payment</div>
+</div>
+<!-- ═══ SCREEN 4: URGENT vs BARGAIN ═══ -->
+<div id="screen-mode" class="screen">
+  <div class="p-4 flex justify-between items-center"><button onclick="goTo('screen-dispatch')" class="text-gray-400 text-sm">&larr;</button><div class="flex items-center gap-2"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="8" fill="#22c55e"/><path d="M4 20h2l1-4h14l1 4h2a1 1 0 000-2h-1l-1.5-5H8.5L7 18H6a1 1 0 000 2z" fill="white"/><circle cx="10" cy="21.5" r="2" fill="white"/><circle cx="22" cy="21.5" r="2" fill="white"/><path d="M20 14l3 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/><rect x="6" y="13" width="8" height="5" rx="1" fill="white" opacity="0.3"/><path d="M16 10v8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M13 10h6" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg><span class="text-xl font-bold tracking-tight">Roady</span></div><button onclick="openProfile(currentScreenId())" class="w-9 h-9 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition border-2 border-gray-600"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#9ca3af"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/></svg></button></div>
+  <div class="flex flex-col items-center px-6 flex-1"><div class="w-full max-w-md py-4">
+    <h2 class="text-2xl font-bold mb-1 text-center">What do you need?</h2>
+    <p class="text-gray-400 text-sm text-center mb-6">AI confirmed your details. Choose your priority.</p>
+    <div class="flex gap-3 mb-6">
+      <div id="btn-urgent" class="mode-btn mode-urgent" onclick="selectMode('urgent')"><div class="text-2xl mb-1">&#x1F6A8;</div><div class="text-base">Urgent</div><div class="text-xs text-red-300 font-normal mt-1">Fastest help now<br/>AI auto-assigns best</div></div>
+      <div id="btn-bargain" class="mode-btn mode-bargain" onclick="selectMode('bargain')"><div class="text-2xl mb-1">&#x1F4B0;</div><div class="text-base">Bargain</div><div class="text-xs text-blue-300 font-normal mt-1">Providers bid for you<br/>Pick best price</div></div>
+    </div>
+    <div id="mode-desc-urgent" class="hidden bg-red-900 bg-opacity-40 border border-red-800 p-4 rounded-2xl mb-6 text-sm text-red-200"><div class="font-semibold mb-1">&#x1F6A8; Urgent Mode Active</div>AI instantly assigns the highest-rated + fastest provider. Best for accidents, highway breakdowns, or night emergencies.</div>
+    <div id="mode-desc-bargain" class="hidden bg-blue-900 bg-opacity-40 border border-blue-800 p-4 rounded-2xl mb-6 text-sm text-blue-200"><div class="font-semibold mb-1">&#x1F4E1; Bargain Mode Active</div>Your request goes to providers within 10-30 miles. They compete and bid. You pick: Fastest, Lowest Price, or Best Rated.</div>
+    <div class="bg-gray-900 p-4 rounded-2xl mb-6 text-sm text-gray-300 space-y-1"><div class="text-xs text-gray-500 mb-2 uppercase tracking-wide">Your Request</div><div id="mode-loc">&#x1F4CD; Location loading...</div><div id="mode-phone">&#x1F4DE; --</div><div id="mode-media">&#x1F4F8; No media</div></div>
+    <button id="mode-continue-btn" onclick="continueMode()" disabled class="bg-gray-700 text-gray-500 w-full py-5 rounded-2xl text-lg font-semibold transition">Select a mode above</button>
+  </div></div>
+  <div class="text-center text-xs text-gray-600 py-6">AI Powered &bull; Real-time Dispatch &bull; Secure Payment</div>
+</div>
+<!-- ═══ SCREEN 5: PROVIDERS ═══ -->
+<div id="screen-providers" class="screen">
+  <div class="p-4 flex justify-between items-center"><button onclick="goTo('screen-mode')" class="text-gray-400 text-sm">&larr;</button><div class="flex items-center gap-2"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="8" fill="#22c55e"/><path d="M4 20h2l1-4h14l1 4h2a1 1 0 000-2h-1l-1.5-5H8.5L7 18H6a1 1 0 000 2z" fill="white"/><circle cx="10" cy="21.5" r="2" fill="white"/><circle cx="22" cy="21.5" r="2" fill="white"/><path d="M20 14l3 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/><rect x="6" y="13" width="8" height="5" rx="1" fill="white" opacity="0.3"/><path d="M16 10v8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M13 10h6" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg><span class="text-xl font-bold tracking-tight">Roady</span></div><span class="text-xs text-gray-400">Choose Provider</span></div>
+  <div class="flex flex-col items-center px-6 flex-1 overflow-y-auto"><div class="w-full max-w-md py-4">
+    <h2 class="text-2xl font-bold mb-1 text-center">Choose Your Provider</h2>
+    <p id="providers-subtitle" class="text-gray-400 text-sm text-center mb-6">3 best options matched for you</p>
+    <div id="urgent-assign" class="hidden"><div class="bg-red-900 bg-opacity-30 border border-red-700 rounded-2xl p-5 mb-4"><div class="flex items-center gap-2 mb-3"><span class="text-xs bg-red-600 text-white px-2 py-0.5 rounded-full font-bold blink">AUTO-ASSIGNED</span><span class="text-xs text-gray-400">Urgent Mode</span></div><div class="flex items-center gap-4 mb-4"><div class="w-14 h-14 bg-gray-700 rounded-full flex items-center justify-center text-2xl">&#x1F69B;</div><div><div class="font-bold text-lg">Mikes Towing Co.</div><div class="flex items-center gap-1 text-yellow-400 text-sm">&#x2B50;&#x2B50;&#x2B50;&#x2B50;&#x2B50; <span class="text-gray-400 text-xs ml-1">(4.9 &bull; 312 jobs)</span></div><div class="text-green-400 text-sm font-semibold mt-1">&#x1F4CD; 1.2 miles away</div></div></div><div class="grid grid-cols-3 gap-2 text-center text-xs mb-4"><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold text-base">8 min</div><div class="text-gray-400">ETA</div></div><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold text-base">$95</div><div class="text-gray-400">Price</div></div><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold text-base">4.9&#x2B50;</div><div class="text-gray-400">Rating</div></div></div><div class="text-xs text-gray-500 mb-4">&#x1F512; Payment held in escrow until service complete</div><button onclick="confirmProvider('Mikes Towing Co.','8 min','$95','4.9')" class="bg-red-600 hover:bg-red-500 w-full py-4 rounded-xl font-bold text-base transition">&#x1F6A8; Confirm &amp; Dispatch Now</button></div></div>
+    <div id="bargain-options" class="hidden space-y-4">
+      <div id="card-fastest" class="bg-gray-900 border border-gray-800 rounded-2xl p-4 cursor-pointer transition" onclick="selectCard('fastest')"><div class="flex items-center justify-between mb-3"><span class="text-xs bg-yellow-500 text-black px-2 py-0.5 rounded-full font-bold">&#x26A1; FASTEST</span><span class="text-xs text-gray-500">2.1 mi</span></div><div class="flex items-center gap-3 mb-3"><div class="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center text-xl">&#x1F69B;</div><div><div class="font-semibold">QuickTow Express</div><div class="text-yellow-400 text-xs">&#x2B50;&#x2B50;&#x2B50;&#x2B50; 4.6 <span class="text-gray-500">(189 jobs)</span></div></div></div><div class="grid grid-cols-3 gap-2 text-center text-xs"><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold">11 min</div><div class="text-gray-400">ETA</div></div><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold">$110</div><div class="text-gray-400">Price</div></div><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold">4.6&#x2B50;</div><div class="text-gray-400">Rating</div></div></div></div>
+      <div id="card-cheapest" class="bg-gray-900 border border-gray-800 rounded-2xl p-4 cursor-pointer transition" onclick="selectCard('cheapest')"><div class="flex items-center justify-between mb-3"><span class="text-xs bg-green-500 text-black px-2 py-0.5 rounded-full font-bold">&#x1F4B0; LOWEST PRICE</span><span class="text-xs text-gray-500">4.8 mi</span></div><div class="flex items-center gap-3 mb-3"><div class="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center text-xl">&#x1F69B;</div><div><div class="font-semibold">Budget Tow Houston</div><div class="text-yellow-400 text-xs">&#x2B50;&#x2B50;&#x2B50;&#x2B50; 4.3 <span class="text-gray-500">(97 jobs)</span></div></div></div><div class="grid grid-cols-3 gap-2 text-center text-xs"><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold">24 min</div><div class="text-gray-400">ETA</div></div><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold">$72</div><div class="text-gray-400">Price</div></div><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold">4.3&#x2B50;</div><div class="text-gray-400">Rating</div></div></div></div>
+      <div id="card-rated" class="bg-gray-900 border border-gray-800 rounded-2xl p-4 cursor-pointer transition" onclick="selectCard('rated')"><div class="flex items-center justify-between mb-3"><span class="text-xs bg-purple-500 text-white px-2 py-0.5 rounded-full font-bold">&#x2B50; BEST RATED</span><span class="text-xs text-gray-500">3.3 mi</span></div><div class="flex items-center gap-3 mb-3"><div class="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center text-xl">&#x1F69B;</div><div><div class="font-semibold">Elite Roadside Pro</div><div class="text-yellow-400 text-xs">&#x2B50;&#x2B50;&#x2B50;&#x2B50;&#x2B50; 4.9 <span class="text-gray-500">(541 jobs)</span></div></div></div><div class="grid grid-cols-3 gap-2 text-center text-xs"><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold">18 min</div><div class="text-gray-400">ETA</div></div><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold">$98</div><div class="text-gray-400">Price</div></div><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold">4.9&#x2B50;</div><div class="text-gray-400">Rating</div></div></div></div>
+      <div class="pt-2"><div class="bg-gray-900 border border-gray-700 rounded-2xl p-3 mb-4 text-xs text-gray-400 text-center">&#x1F512; Escrow hold &bull; Released only after service complete</div><button id="confirm-bargain-btn" onclick="confirmBargain()" disabled class="bg-gray-700 text-gray-500 w-full py-5 rounded-2xl text-lg font-bold transition">Select a provider above</button></div>
+    </div>
+  </div></div>
+  <div class="text-center text-xs text-gray-600 py-6">AI Powered &bull; Real-time Dispatch &bull; Secure Payment</div>
+</div>
+<!-- ═══ SCREEN 6: LIVE TRACKING ═══ -->
+<div id="screen-tracking" class="screen">
+  <div class="p-4 flex justify-between items-center"><div class="flex items-center gap-2"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="8" fill="#22c55e"/><path d="M4 20h2l1-4h14l1 4h2a1 1 0 000-2h-1l-1.5-5H8.5L7 18H6a1 1 0 000 2z" fill="white"/><circle cx="10" cy="21.5" r="2" fill="white"/><circle cx="22" cy="21.5" r="2" fill="white"/><path d="M20 14l3 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/><rect x="6" y="13" width="8" height="5" rx="1" fill="white" opacity="0.3"/><path d="M16 10v8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M13 10h6" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg><span class="text-xl font-bold tracking-tight">Roady</span></div><div class="flex items-center gap-2"><span class="text-xs bg-green-500 text-black px-2 py-0.5 rounded-full font-bold blink">ON THE WAY</span><button onclick="openProfile(currentScreenId())" class="w-9 h-9 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition border-2 border-gray-600"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#9ca3af"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/></svg></button></div></div>
+  <div class="flex flex-col items-center px-6 flex-1 overflow-y-auto"><div class="w-full max-w-md py-4">
+    <div class="bg-gray-900 rounded-2xl p-6 mb-4 text-center"><div class="text-5xl font-black text-green-400 mb-1" id="track-eta">--</div><div class="text-gray-400 text-sm mb-4">Estimated arrival</div><div class="bg-gray-800 h-2 rounded-full overflow-hidden"><div id="eta-bar" class="bg-green-500 h-2 rounded-full transition-all duration-1000" style="width:5%"></div></div></div>
+    <div class="bg-gray-900 rounded-2xl p-4 mb-4"><div class="text-xs text-gray-500 uppercase tracking-wide mb-3">Assigned Provider</div><div class="flex items-center gap-4 mb-4"><div class="w-14 h-14 bg-gray-700 rounded-full flex items-center justify-center text-2xl">&#x1F69B;</div><div class="flex-1"><div class="font-bold" id="track-name">--</div><div class="text-yellow-400 text-xs" id="track-rating">--</div><div class="text-green-400 text-xs mt-0.5" id="track-price">--</div></div><a href="tel:+15551234" class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-xl text-sm font-semibold transition">&#x1F4DE; Call</a></div><a id="track-map-link" href="https://maps.google.com" target="_blank" class="block bg-gray-800 hover:bg-gray-700 transition py-3 rounded-xl text-sm text-center text-blue-400">&#x1F5FA;&#xFE0F; Track on Map</a></div>
+    <div class="bg-gray-900 rounded-2xl p-4 mb-4"><div class="text-xs text-gray-500 uppercase tracking-wide mb-3">Payment (Escrow)</div><div class="space-y-2 text-sm"><div class="flex items-center justify-between"><span class="text-gray-300">&#x1F512; Held Amount</span><span class="text-yellow-400 font-medium" id="track-price-esc">--</span></div><div class="flex items-center justify-between"><span class="text-gray-300">Status</span><span class="text-yellow-300 text-xs bg-yellow-900 px-2 py-0.5 rounded-full">Held until complete</span></div><div class="flex items-center justify-between"><span class="text-gray-300">Release</span><span class="text-gray-400 text-xs">After you confirm service</span></div></div></div>
+    <div class="bg-gray-900 rounded-2xl p-4 mb-6"><div class="text-xs text-gray-500 uppercase tracking-wide mb-3">Safety &amp; Dispute</div><div class="grid grid-cols-2 gap-2"><button class="bg-gray-800 hover:bg-gray-700 py-3 rounded-xl text-xs font-medium transition">&#x26A0;&#xFE0F; Report Issue</button><button class="bg-gray-800 hover:bg-gray-700 py-3 rounded-xl text-xs font-medium transition">&#x1F4F8; Upload Evidence</button></div></div>
+    <button onclick="goTo('screen-complete')" class="bg-green-500 hover:bg-green-400 w-full py-5 rounded-2xl text-lg font-bold transition">&#x2705; Service Complete - Release Payment</button>
+  </div></div>
+  <div class="text-center text-xs text-gray-600 py-6">Escrow Protected &bull; AI Verified &bull; Dispute Support</div>
+</div>
+<!-- ═══ SCREEN 7: COMPLETE + REVIEW ═══ -->
+<div id="screen-complete" class="screen">
+  <div class="p-4 flex justify-between items-center"><div class="flex items-center gap-2"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="8" fill="#22c55e"/><path d="M4 20h2l1-4h14l1 4h2a1 1 0 000-2h-1l-1.5-5H8.5L7 18H6a1 1 0 000 2z" fill="white"/><circle cx="10" cy="21.5" r="2" fill="white"/><circle cx="22" cy="21.5" r="2" fill="white"/><path d="M20 14l3 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/><rect x="6" y="13" width="8" height="5" rx="1" fill="white" opacity="0.3"/><path d="M16 10v8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M13 10h6" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg><span class="text-xl font-bold tracking-tight">Roady</span></div><div class="flex items-center gap-2"><span class="text-xs text-gray-400">&#x2705; Done</span><button onclick="openProfile(currentScreenId())" class="w-9 h-9 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition border-2 border-gray-600"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#9ca3af"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/></svg></button></div></div>
+  <div class="flex flex-col items-center justify-center flex-1 px-6 text-center">
+    <div class="text-6xl mb-4">&#x1F389;</div>
+    <h2 class="text-2xl font-bold mb-2">Service Complete!</h2>
+    <p class="text-gray-400 text-sm mb-6">Payment released from escrow. Thank you for using Roady.</p>
+    <div class="bg-gray-900 rounded-2xl p-5 w-full max-w-sm mb-6 text-left"><div class="text-xs text-gray-500 mb-3 uppercase tracking-wide">Summary</div><div id="final-phone" class="text-sm text-gray-300 mb-1"></div><div id="final-loc" class="text-sm text-gray-300 mb-1"></div><div id="final-provider" class="text-sm text-gray-300"></div></div>
+    <div class="bg-gray-900 rounded-2xl p-5 w-full max-w-sm mb-6"><div class="text-sm text-gray-400 mb-3">Rate your experience</div><div class="flex justify-center gap-3 text-4xl mb-4" id="stars"><span class="cursor-pointer opacity-40 hover:opacity-100 transition" onclick="rateStar(1)">&#x2B50;</span><span class="cursor-pointer opacity-40 hover:opacity-100 transition" onclick="rateStar(2)">&#x2B50;</span><span class="cursor-pointer opacity-40 hover:opacity-100 transition" onclick="rateStar(3)">&#x2B50;</span><span class="cursor-pointer opacity-40 hover:opacity-100 transition" onclick="rateStar(4)">&#x2B50;</span><span class="cursor-pointer opacity-40 hover:opacity-100 transition" onclick="rateStar(5)">&#x2B50;</span></div><textarea placeholder="Leave a comment (optional)..." class="w-full bg-gray-800 p-3 rounded-xl text-sm outline-none text-white resize-none h-20"></textarea></div>
+    <button class="bg-blue-600 hover:bg-blue-500 w-full max-w-sm py-4 rounded-2xl font-bold text-base transition mb-3">Submit Review</button>
+    <button onclick="resetApp()" class="text-gray-500 text-sm underline">New Request</button>
+  </div>
+  <div class="text-center text-xs text-gray-600 py-6">AI Powered &bull; Real-time Dispatch &bull; Secure Payment</div>
+</div>
+<script>
+// ── API config ─────────────────────────────────────────────────────────────
+var API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? 'http://localhost:3001/api'
+  : 'https://roady-api.railway.app/api'; // replace with real Railway URL
+
+var _token = localStorage.getItem('roady_token') || '';
+var _customerId = localStorage.getItem('roady_cid') || '';
+var _currentJobId = sessionStorage.getItem('roady_jid') || null;
+
+function api(path, opts) {
+  opts = opts || {};
+  opts.headers = Object.assign({ 'Content-Type': 'application/json' }, opts.headers || {});
+  if (_token) opts.headers['Authorization'] = 'Bearer ' + _token;
+  if (opts.body && typeof opts.body === 'object') opts.body = JSON.stringify(opts.body);
+  return fetch(API + path, opts).then(function(r) {
+    if (r.status === 401) { _token = ''; localStorage.removeItem('roady_token'); }
+    return r.json();
+  });
+}
+
+// ── Global state ───────────────────────────────────────────────────────────
+var sentCode="", coords=null, mediaFile=null, mediaPreviewUrl=null;
+var watchId=null, isLiveTracking=false, locMode="type";
+var selectedMode=null, selectedCard=null, currentProvider=null;
+var providerData={
+  fastest:{name:"QuickTow Express",eta:"11 min",price:"$110",rating:"4.6 stars"},
+  cheapest:{name:"Budget Tow Houston",eta:"24 min",price:"$72",rating:"4.3 stars"},
+  rated:{name:"Elite Roadside Pro",eta:"18 min",price:"$98",rating:"4.9 stars"}
+};
+// ── Navigation ─────────────────────────────────────────────────────────────
+function goTo(id){document.querySelectorAll(".screen").forEach(function(s){s.classList.remove("active");});document.getElementById(id).classList.add("active");window.scrollTo(0,0);}
+// ── Phone format ───────────────────────────────────────────────────────────
+document.getElementById("phone-input").addEventListener("input",function(){var d=this.value.replace(/\D/g,"").slice(0,10),f=d;if(d.length>6)f="("+d.slice(0,3)+") "+d.slice(3,6)+"-"+d.slice(6);else if(d.length>3)f="("+d.slice(0,3)+") "+d.slice(3);this.value=f;});
+// ── Code input digits only ─────────────────────────────────────────────────
+document.getElementById("code-input").addEventListener("input",function(){this.value=this.value.replace(/\D/g,"").slice(0,6);});
+// ── Media preview ──────────────────────────────────────────────────────────
+document.getElementById("media-input").addEventListener("change",function(){var f=this.files[0];if(!f)return;mediaFile=f;if(mediaPreviewUrl)URL.revokeObjectURL(mediaPreviewUrl);mediaPreviewUrl=URL.createObjectURL(f);var img=document.getElementById("preview-img"),vid=document.getElementById("preview-vid");if(f.type.startsWith("image")){img.src=mediaPreviewUrl;img.classList.remove("hidden");vid.classList.add("hidden");}else{vid.src=mediaPreviewUrl;vid.classList.remove("hidden");img.classList.add("hidden");}});
+// ── Location mode switcher ─────────────────────────────────────────────────
+function switchLocMode(mode){locMode=mode;if(mode!=="device")stopDeviceLive();["type","gps","device"].forEach(function(m){var t=document.getElementById("tab-"+m);if(m===mode)t.classList.add("active");else t.classList.remove("active");});document.getElementById("loc-mode-type").classList.toggle("hidden",mode!=="type");document.getElementById("loc-mode-gps").classList.toggle("hidden",mode!=="gps");document.getElementById("loc-mode-device").classList.toggle("hidden",mode!=="device");if(mode==="type"){coords=null;document.getElementById("share-panel").classList.add("hidden");}}
+// ── GPS one-shot ───────────────────────────────────────────────────────────
+function triggerGPS(){if(!navigator.geolocation){document.getElementById("gps-status").textContent="GPS not supported.";return;}document.getElementById("gps-status").textContent="Locating...";document.getElementById("gps-result").classList.add("hidden");navigator.geolocation.getCurrentPosition(function(pos){coords={lat:pos.coords.latitude,lng:pos.coords.longitude,acc:pos.coords.accuracy};document.getElementById("gps-status").textContent="";document.getElementById("gps-coords").textContent=coords.lat.toFixed(6)+", "+coords.lng.toFixed(6);document.getElementById("gps-accuracy").textContent=coords.acc?"Accuracy: +/-"+Math.round(coords.acc)+"m":"";document.getElementById("gps-link").href=mapsLink();document.getElementById("gps-result").classList.remove("hidden");showSharePanel();},function(){document.getElementById("gps-status").textContent="Could not get location. Check permissions.";},{timeout:10000,enableHighAccuracy:true});}
+// ── Live device tracking ───────────────────────────────────────────────────
+function startDeviceLive(){if(!navigator.geolocation){alert("Geolocation not supported.");return;}isLiveTracking=true;document.getElementById("device-idle").classList.add("hidden");document.getElementById("device-live").classList.remove("hidden");document.getElementById("live-badge").classList.remove("hidden");watchId=navigator.geolocation.watchPosition(function(pos){coords={lat:pos.coords.latitude,lng:pos.coords.longitude,acc:pos.coords.accuracy};document.getElementById("device-coords").textContent=coords.lat.toFixed(6)+", "+coords.lng.toFixed(6);document.getElementById("device-accuracy").textContent=coords.acc?"Accuracy: +/-"+Math.round(coords.acc)+"m":"";document.getElementById("device-link").href=mapsLink();showSharePanel();},function(){},{enableHighAccuracy:true,maximumAge:5000});}
+function stopDeviceLive(){if(watchId!==null){navigator.geolocation.clearWatch(watchId);watchId=null;}isLiveTracking=false;document.getElementById("live-badge").classList.add("hidden");document.getElementById("device-idle").classList.remove("hidden");document.getElementById("device-live").classList.add("hidden");coords=null;document.getElementById("share-panel").classList.add("hidden");}
+// ── Share panel ────────────────────────────────────────────────────────────
+function showSharePanel(){document.getElementById("share-panel").classList.remove("hidden");if(navigator.share)document.getElementById("native-share-btn").classList.remove("hidden");}
+function mapsLink(){return coords?"https://maps.google.com/?q="+coords.lat+","+coords.lng:"";}
+function shareMessage(){var addr=document.getElementById("manual-addr").value;if(locMode==="type"&&addr)return"Roady - I need a tow! My location: "+addr;return"Roady - I need a tow"+(isLiveTracking?" [LIVE]":"")+"! My location: "+mapsLink();}
+function shareVia(channel){var msg=shareMessage(),link=locMode==="type"?"":mapsLink();if(channel==="whatsapp")window.open("https://wa.me/?text="+encodeURIComponent(msg),"_blank");else if(channel==="sms")window.location.href="sms:?body="+encodeURIComponent(msg);else if(channel==="copy"){navigator.clipboard.writeText(link||msg).then(function(){var btn=document.getElementById("copy-btn"),orig=btn.textContent;btn.textContent="Copied!";setTimeout(function(){btn.textContent=orig;},2000);});}else if(channel==="maps"&&link)window.open(link,"_blank");else if(channel==="native")navigator.share({title:"Roady - My Location",text:msg,url:link||location.href}).catch(function(){});else if(channel==="email")window.location.href="mailto:?subject="+encodeURIComponent("Roady - I need a tow!")+"&body="+encodeURIComponent(msg);}
+// ── Send verification code ─────────────────────────────────────────────────
+function handleSendCode(resend){
+  var rawPhone=document.getElementById("phone-input").value.replace(/\D/g,"");
+  var errEl=document.getElementById("capture-error");
+  var btn=document.getElementById("send-code-btn");
+  if(!resend&&rawPhone.length<10){showError(errEl,"Enter valid 10-digit phone number.");return;}
+  hideError(errEl);
+  setBtn(btn,true,"Sending code...");
+  api('/auth/customer/send-otp',{method:'POST',body:{phone:'+1'+rawPhone}})
+    .then(function(res){
+      setBtn(btn,false,"Request Instant Help");
+      if(res.error){showError(errEl,res.error);return;}
+      document.getElementById("verify-subtitle").textContent="Code sent to +1"+rawPhone;
+      document.getElementById("code-input").value="";
+      hideError(document.getElementById("verify-error"));
+      goTo("screen-verify");
+    }).catch(function(){
+      setBtn(btn,false,"Request Instant Help");
+      showError(errEl,"Network error — check connection.");
+    });
+}
+// ── Verify → create/login account → go to dispatch ─────────────────────────
+function handleVerify(){
+  var entered=document.getElementById("code-input").value;
+  var errEl=document.getElementById("verify-error");
+  var btn=document.getElementById("verify-btn");
+  var rawPhone=document.getElementById("phone-input").value.replace(/\D/g,"");
+  if(!entered||entered.length<4){showError(errEl,"Enter the code we sent you.");return;}
+  hideError(errEl);
+  setBtn(btn,true,"Verifying...");
+  var refCode=sessionStorage.getItem("roady_ref")||"";
+  api('/auth/customer/verify-otp',{method:'POST',body:{phone:'+1'+rawPhone,code:entered,refCode:refCode}})
+    .then(function(res){
+      setBtn(btn,false,"Verify & Create Account");
+      if(res.error){showError(errEl,res.error);return;}
+      _token=res.token;_customerId=res.customer.id;
+      localStorage.setItem('roady_token',_token);
+      localStorage.setItem('roady_cid',_customerId);
+      var phone=document.getElementById("phone-input").value;
+      var addr=document.getElementById("manual-addr").value;
+      document.getElementById("dispatch-phone").textContent=phone;
+      document.getElementById("mode-phone").textContent=phone?"Phone: "+phone:"--";
+      document.getElementById("mode-loc").textContent=coords?"GPS: "+coords.lat.toFixed(4)+","+coords.lng.toFixed(4):addr||"Location: --";
+      document.getElementById("mode-media").textContent=mediaFile?"File: "+mediaFile.name:"No media attached";
+      document.getElementById("final-phone").textContent=phone?"Phone: "+phone:"";
+      if(coords){document.getElementById("final-loc").textContent="Location: "+coords.lat.toFixed(5)+","+coords.lng.toFixed(5);}
+      else if(addr){document.getElementById("final-loc").textContent="Location: "+addr;}
+      goTo("screen-dispatch");
+    }).catch(function(){
+      setBtn(btn,false,"Verify & Create Account");
+      showError(errEl,"Network error — try again.");
+    });
+}
+// ── Mode selection ─────────────────────────────────────────────────────────
+function selectMode(mode){selectedMode=mode;["urgent","bargain"].forEach(function(m){document.getElementById("btn-"+m).classList.remove("selected");});document.getElementById("mode-desc-urgent").classList.add("hidden");document.getElementById("mode-desc-bargain").classList.add("hidden");document.getElementById("btn-"+mode).classList.add("selected");document.getElementById("mode-desc-"+mode).classList.remove("hidden");var btn=document.getElementById("mode-continue-btn");btn.disabled=false;btn.className=(mode==="urgent")?"bg-red-600 hover:bg-red-500 w-full py-5 rounded-2xl text-lg font-semibold transition":"bg-blue-600 hover:bg-blue-500 w-full py-5 rounded-2xl text-lg font-semibold transition";btn.textContent=(mode==="urgent")?"Dispatch Immediately":"Find Best Providers";}
+function continueMode(){
+  if(!selectedMode)return;
+  var btn=document.getElementById("mode-continue-btn");
+  setBtn(btn,true,"Finding providers...");
+  var addr=document.getElementById("manual-addr").value;
+  var locText=coords?"GPS: "+coords.lat.toFixed(5)+","+coords.lng.toFixed(5):addr||"Unknown";
+  api('/jobs',{method:'POST',body:{
+    mode:selectedMode,
+    locationText:locText,
+    locationLat:coords?coords.lat:null,
+    locationLng:coords?coords.lng:null,
+  }}).then(function(res){
+    setBtn(btn,false,selectedMode==="urgent"?"Dispatch Immediately":"Find Best Providers");
+    if(res.error){alert("Error: "+res.error);return;}
+    _currentJobId=res.job?res.job.id:null;
+    if(_currentJobId)sessionStorage.setItem('roady_jid',_currentJobId);
+    document.getElementById("urgent-assign").classList.toggle("hidden",selectedMode!=="urgent");
+    document.getElementById("bargain-options").classList.toggle("hidden",selectedMode!=="bargain");
+    document.getElementById("providers-subtitle").textContent=(selectedMode==="urgent")?"AI auto-assigned best available provider":"3 best bids matched for you";
+    goTo("screen-providers");
+  }).catch(function(){
+    setBtn(btn,false,selectedMode==="urgent"?"Dispatch Immediately":"Find Best Providers");
+    // Offline fallback — continue to providers screen anyway
+    _currentJobId=null;
+    document.getElementById("urgent-assign").classList.toggle("hidden",selectedMode!=="urgent");
+    document.getElementById("bargain-options").classList.toggle("hidden",selectedMode!=="bargain");
+    goTo("screen-providers");
+  });
+}
+// ── Card selection ─────────────────────────────────────────────────────────
+function selectCard(card){selectedCard=card;["fastest","cheapest","rated"].forEach(function(c){document.getElementById("card-"+c).classList.remove("card-selected");});document.getElementById("card-"+card).classList.add("card-selected");var p=providerData[card],btn=document.getElementById("confirm-bargain-btn");btn.disabled=false;btn.textContent="Confirm "+p.name+" - "+p.price;btn.className="bg-green-500 hover:bg-green-400 w-full py-5 rounded-2xl text-lg font-bold transition";}
+function confirmBargain(){
+  if(!selectedCard)return;
+  var p=providerData[selectedCard];
+  _confirmJobWithProvider(p.providerId||null,p.name,p.eta,p.price,p.rating);
+}
+function confirmProvider(name,eta,price,rating,providerId){
+  _confirmJobWithProvider(providerId||null,name,eta,price,rating);
+}
+function _confirmJobWithProvider(providerId,name,eta,price,rating){
+  if(!_currentJobId||!providerId){
+    // No live job yet (demo mode) — go straight to tracking
+    showTracking(name,eta,price,rating);return;
+  }
+  var numPrice=parseFloat(price.replace(/[^0-9.]/g,''))||95;
+  api('/jobs/'+_currentJobId+'/confirm',{method:'POST',body:{providerId:providerId,agreedPrice:numPrice}})
+    .then(function(res){
+      if(res.error){alert("Payment error: "+res.error);return;}
+      showTracking(name,eta,price,rating);
+    }).catch(function(){showTracking(name,eta,price,rating);});
+}
+// ── Show tracking screen ───────────────────────────────────────────────────
+function showTracking(name,eta,price,rating){currentProvider={name:name,eta:eta,price:price,rating:rating};document.getElementById("track-name").textContent=name;document.getElementById("track-eta").textContent=eta;document.getElementById("track-rating").textContent=rating;document.getElementById("track-price").textContent="Est. "+price;document.getElementById("track-price-esc").textContent=price;document.getElementById("final-provider").textContent="Provider: "+name+" - "+price;if(mapsLink())document.getElementById("track-map-link").href=mapsLink();goTo("screen-tracking");animateETA();}
+function animateETA(){var bar=document.getElementById("eta-bar"),pct=5;var iv=setInterval(function(){pct+=2;bar.style.width=pct+"%";if(pct>=95)clearInterval(iv);},800);}
+// ── Rating ─────────────────────────────────────────────────────────────────
+function rateStar(n){var stars=document.getElementById("stars").children;for(var i=0;i<stars.length;i++){stars[i].style.opacity=i<n?"1":"0.3";}}
+// ── Profile ────────────────────────────────────────────────────────────────
+var profilePrevScreen="screen-dispatch";
+function profileBack(){goTo(profilePrevScreen);}
+function openProfile(from){
+  profilePrevScreen=from;
+  initAffiliate();
+  var phone=document.getElementById("phone-input").value;
+  document.getElementById("profile-phone-display").textContent=phone||"Not set";
+  document.getElementById("profile-display-phone").textContent=phone||"";
+  var name=document.getElementById("profile-name").value;
+  document.getElementById("profile-display-name").textContent=name||"Roady User";
+  goTo("screen-profile");
+  // Load real order history
+  if(_token){
+    api('/jobs/mine').then(function(res){
+      if(!res.jobs||!res.jobs.length)return;
+      var hist=document.getElementById("order-history");
+      if(!hist)return;
+      hist.innerHTML=res.jobs.slice(0,5).map(function(j){
+        var statusColor=j.status==='completed'?'text-green-400 bg-green-900':
+                        j.status==='disputed'?'text-yellow-400 bg-yellow-900':'text-gray-400 bg-gray-800';
+        var date=j.completed_at?new Date(j.completed_at).toLocaleDateString():'Pending';
+        return '<div class="bg-gray-800 rounded-xl p-3">'
+          +'<div class="flex justify-between items-start mb-1">'
+          +'<span class="text-sm font-medium">'+(j.company_name||j.service_type||'Job')+'</span>'
+          +'<span class="text-xs '+statusColor+' px-2 py-0.5 rounded-full">'+j.status+'</span>'
+          +'</div>'
+          +'<div class="text-xs text-gray-400">'+j.location_text+'</div>'
+          +'<div class="flex justify-between mt-1">'
+          +'<span class="text-xs text-gray-500">'+date+'</span>'
+          +'<span class="text-xs text-white font-semibold">$'+(j.agreed_price||'--')+'</span>'
+          +'</div></div>';
+      }).join('');
+    }).catch(function(){});
+  }
+}
+function saveProfile(){var name=document.getElementById("profile-name").value;document.getElementById("profile-display-name").textContent=name||"Roady User";var msg=document.getElementById("profile-save-msg");msg.classList.remove("hidden");setTimeout(function(){msg.classList.add("hidden");},2000);}
+
+function currentScreenId(){var active=document.querySelector(".screen.active");return active?active.id:"screen-dispatch";}
+
+// ── Reset full app ──────────────────────────────────────────────────────────
+function resetApp(){sentCode="";coords=null;mediaFile=null;mediaPreviewUrl=null;watchId=null;isLiveTracking=false;locMode="type";selectedMode=null;selectedCard=null;currentProvider=null;document.getElementById("phone-input").value="";document.getElementById("manual-addr").value="";document.getElementById("code-input").value="";document.getElementById("preview-img").classList.add("hidden");document.getElementById("preview-vid").classList.add("hidden");document.getElementById("share-panel").classList.add("hidden");document.getElementById("gps-result").classList.add("hidden");switchLocMode("type");goTo("screen-capture");}
+// ── Skip verify (DEV ONLY — remove before production) ──────────────────────
+function skipVerify(){var phone=document.getElementById("phone-input").value,addr=document.getElementById("manual-addr").value;document.getElementById("dispatch-phone").textContent=phone;document.getElementById("mode-phone").textContent=phone?"Phone: "+phone:"--";document.getElementById("mode-loc").textContent=coords?"GPS: "+coords.lat.toFixed(4)+", "+coords.lng.toFixed(4):addr?addr:"Location: --";document.getElementById("mode-media").textContent=mediaFile?"File: "+mediaFile.name:"No media attached";if(coords){document.getElementById("final-loc").textContent="Location: "+coords.lat.toFixed(5)+", "+coords.lng.toFixed(5);}else if(addr){document.getElementById("final-loc").textContent="Location: "+addr;}document.getElementById("final-phone").textContent=phone?"Phone: "+phone:"";goTo("screen-dispatch");}
+
+// ── Affiliate ──────────────────────────────────────────────────────────────
+function genRefCode(seed){var c="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";var h=0;for(var i=0;i<seed.length;i++){h=(Math.imul(31,h)+seed.charCodeAt(i))|0;}var r="";for(var j=0;j<6;j++){r+=c[Math.abs((h>>j*4)&0xf)%c.length];}return r;}
+function initAffiliate(){
+  // Capture incoming referral code
+  var params=new URLSearchParams(window.location.search);
+  if(params.get("ref")){sessionStorage.setItem("roady_ref",params.get("ref"));}
+  if(!_token){
+    // Not logged in — show placeholder
+    var el=document.getElementById("cust-ref-link");
+    if(el)el.textContent="Sign in to get your referral link";
+    return;
+  }
+  api('/affiliate/code',{method:'POST'}).then(function(res){
+    if(res.code){
+      var link="roady.app/ref/"+res.code;
+      var el=document.getElementById("cust-ref-link");
+      if(el)el.textContent=link;
+    }
+  }).catch(function(){});
+  api('/affiliate/stats').then(function(res){
+    if(res.totalReferrals!==undefined){
+      var refsEl=document.getElementById("aff-refs");
+      var earnEl=document.getElementById("aff-earn");
+      var pendEl=document.getElementById("aff-pending");
+      if(refsEl)refsEl.textContent=res.totalReferrals;
+      if(earnEl)earnEl.textContent="$"+Number(res.totalEarned).toFixed(0);
+      if(pendEl)pendEl.textContent="$"+Number(res.pending).toFixed(0);
+    }
+  }).catch(function(){});
+}
+function copyRefLink(side){
+  var el=document.getElementById(side+"-ref-link");
+  if(!el)return;
+  navigator.clipboard.writeText("https://"+el.textContent).then(function(){
+    var btn=document.getElementById(side+"-copy-btn");
+    if(btn){btn.textContent="Copied!";setTimeout(function(){btn.textContent="Copy";},2000);}
+  });
+}
+function shareRef(channel,side){
+  var el=document.getElementById(side+"-ref-link");
+  var url="https://"+(el?el.textContent:"roady.app/ref/XXXXX");
+  var msg="Get fast towing anywhere — try Roady! Use my link and we both earn: "+url;
+  if(channel==="whatsapp")window.open("https://wa.me/?text="+encodeURIComponent(msg),"_blank");
+  else if(channel==="sms")window.open("sms:?body="+encodeURIComponent(msg));
+  else if(channel==="native"&&navigator.share)navigator.share({title:"Roady Towing",text:msg,url:url});
+  else copyRefLink(side);
+}
+function openAffDashboard(){
+  var phone=document.getElementById("phone-input").value||"user";
+  var name=document.getElementById("profile-name").value||"Roady User";
+  var seed=phone;
+  window.location.href="affiliate.html?type=customer&name="+encodeURIComponent(name)+"&seed="+encodeURIComponent(seed);
+}
+// ── Helpers ────────────────────────────────────────────────────────────────
+function showError(el,msg){el.textContent=msg;el.classList.remove("hidden");}
+function hideError(el){el.textContent="";el.classList.add("hidden");}
+function setBtn(btn,disabled,label){btn.disabled=disabled;btn.textContent=label;btn.classList.toggle("bg-green-500",!disabled);btn.classList.toggle("bg-gray-700",disabled);btn.classList.toggle("text-gray-500",disabled);}
+</script>
+</body></html>
+<!-- ═══ SCREEN 8: PROFILE ═══ -->
+<div id="screen-profile" class="screen">
+  <div class="p-4 flex justify-between items-center">
+    <button id="profile-back-btn" onclick="profileBack()" class="text-gray-400 text-sm">&larr;</button>
+    <div class="flex items-center gap-2"><svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="8" fill="#22c55e"/><path d="M4 20h2l1-4h14l1 4h2a1 1 0 000-2h-1l-1.5-5H8.5L7 18H6a1 1 0 000 2z" fill="white"/><circle cx="10" cy="21.5" r="2" fill="white"/><circle cx="22" cy="21.5" r="2" fill="white"/><path d="M16 10v8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M13 10h6" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg><span class="text-lg font-bold">Roady</span></div>
+    <span class="text-xs text-gray-500">Profile</span>
+  </div>
+  <div class="flex flex-col items-center px-6 flex-1 overflow-y-auto"><div class="w-full max-w-md py-4">
+    <div class="flex flex-col items-center mb-6">
+      <div class="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mb-3 border-4 border-green-500"><svg width="40" height="40" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#9ca3af"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/></svg></div>
+      <div id="profile-display-name" class="text-lg font-bold text-white">Roady User</div>
+      <div id="profile-display-phone" class="text-sm text-gray-400"></div>
+    </div>
+    <div class="bg-gray-900 rounded-2xl p-5 mb-4">
+      <div class="text-xs text-gray-500 uppercase tracking-wide mb-4">Account Info</div>
+      <div class="space-y-3">
+        <div><label class="text-xs text-gray-500 block mb-1">Phone Number</label><div id="profile-phone-display" class="bg-gray-800 p-3 rounded-xl text-sm text-gray-400 font-mono"></div></div>
+        <div><label class="text-xs text-gray-500 block mb-1">Full Name (optional)</label><input id="profile-name" type="text" placeholder="Enter your name..." class="w-full bg-gray-800 p-3 rounded-xl text-sm outline-none text-white"/></div>
+        <div><label class="text-xs text-gray-500 block mb-1">Email (optional)</label><input id="profile-email" type="email" placeholder="your@email.com" class="w-full bg-gray-800 p-3 rounded-xl text-sm outline-none text-white"/></div>
+      </div>
+      <button onclick="saveProfile()" class="mt-4 bg-green-500 hover:bg-green-400 w-full py-3 rounded-xl text-sm font-semibold transition">Save Changes</button>
+      <p id="profile-save-msg" class="text-green-400 text-xs text-center mt-2 hidden">Saved!</p>
+    </div>
+    <div class="bg-gray-900 rounded-2xl p-5 mb-4">
+      <div class="text-xs text-gray-500 uppercase tracking-wide mb-4">Order History</div>
+      <div id="order-history" class="space-y-3">
+        <div class="bg-gray-800 rounded-xl p-3"><div class="flex justify-between items-start mb-1"><span class="text-sm font-medium">QuickTow Express</span><span class="text-xs text-green-400 bg-green-900 px-2 py-0.5 rounded-full">Completed</span></div><div class="text-xs text-gray-400">2847 Richmond Ave, Houston</div><div class="flex justify-between mt-1"><span class="text-xs text-gray-500">Apr 24, 2026</span><span class="text-xs text-white font-semibold">$110</span></div></div>
+        <div class="bg-gray-800 rounded-xl p-3"><div class="flex justify-between items-start mb-1"><span class="text-sm font-medium">Elite Roadside Pro</span><span class="text-xs text-green-400 bg-green-900 px-2 py-0.5 rounded-full">Completed</span></div><div class="text-xs text-gray-400">I-45 N, Houston TX</div><div class="flex justify-between mt-1"><span class="text-xs text-gray-500">Mar 12, 2026</span><span class="text-xs text-white font-semibold">$98</span></div></div>
+        <div class="bg-gray-800 rounded-xl p-3"><div class="flex justify-between items-start mb-1"><span class="text-sm font-medium">Budget Tow Houston</span><span class="text-xs text-yellow-400 bg-yellow-900 px-2 py-0.5 rounded-full">Disputed</span></div><div class="text-xs text-gray-400">610 Loop, Houston TX</div><div class="flex justify-between mt-1"><span class="text-xs text-gray-500">Feb 3, 2026</span><span class="text-xs text-white font-semibold">$72</span></div></div>
+        <div id="no-history" class="hidden text-center text-sm text-gray-600 py-4">No orders yet</div>
+      </div>
+    </div>
+    <button onclick="resetApp()" class="w-full bg-gray-800 hover:bg-gray-700 py-4 rounded-2xl text-sm font-medium text-gray-300 transition mb-3">&#x1F504; Start New Request</button>
+    <!-- AFFILIATE SECTION -->
+    <div class="bg-gray-900 rounded-2xl p-5 mb-4" id="affiliate-box">
+      <div class="flex items-center justify-between mb-1">
+        <div class="text-xs text-gray-500 uppercase tracking-wide font-semibold">&#x1F4B8; Refer &amp; Earn</div>
+        <span class="text-xs bg-green-900 text-green-400 border border-green-700 px-2 py-0.5 rounded-full font-bold">$10 / referral</span>
+      </div>
+      <p class="text-xs text-gray-400 mb-3">Share your link — earn $10 each time a friend books their first tow.</p>
+      <!-- Earnings mini stats -->
+      <div class="flex gap-3 mb-3">
+        <div class="flex-1 bg-gray-800 rounded-xl p-3 text-center"><p class="text-lg font-black text-green-400" id="aff-refs">0</p><p class="text-xs text-gray-500">Referred</p></div>
+        <div class="flex-1 bg-gray-800 rounded-xl p-3 text-center"><p class="text-lg font-black text-white" id="aff-earn">$0</p><p class="text-xs text-gray-500">Earned</p></div>
+        <div class="flex-1 bg-gray-800 rounded-xl p-3 text-center"><p class="text-lg font-black text-yellow-400" id="aff-pending">$0</p><p class="text-xs text-gray-500">Pending</p></div>
+      </div>
+      <!-- Ref link -->
+      <div class="bg-gray-800 rounded-xl px-3 py-2.5 flex items-center justify-between mb-3">
+        <span class="text-xs text-gray-300 font-mono truncate" id="cust-ref-link">roady.app/ref/...</span>
+        <button onclick="copyRefLink('cust')" class="text-xs text-green-400 font-bold ml-2 flex-shrink-0" id="cust-copy-btn">Copy</button>
+      </div>
+      <!-- Share buttons -->
+      <div class="grid grid-cols-3 gap-2 mb-3">
+        <button onclick="shareRef('whatsapp','cust')" class="bg-green-700 py-2.5 rounded-xl text-xs font-bold">&#x1F4AC; WhatsApp</button>
+        <button onclick="shareRef('sms','cust')" class="bg-blue-700 py-2.5 rounded-xl text-xs font-bold">&#x1F4F1; SMS</button>
+        <button onclick="shareRef('native','cust')" class="bg-gray-700 py-2.5 rounded-xl text-xs font-bold">&#x2B06; Share</button>
+      </div>
+      <button onclick="openAffDashboard()" class="w-full bg-gradient-to-r from-green-700 to-green-600 hover:from-green-600 hover:to-green-500 py-3 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2">&#x1F4CA; View Full Affiliate Dashboard &rarr;</button>
+    </div>
+    <button onclick="resetApp()" class="w-full text-red-500 text-sm underline">Sign Out</button>
+  </div></div>
+  <div class="text-center text-xs text-gray-600 py-6">Roady &bull; AI Towing &bull; Secure &amp; Trusted</div>
+</div>
