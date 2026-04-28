@@ -4,12 +4,36 @@
     {
       "src": "backend/src/index.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "*.html",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
       "dest": "backend/src/index.js"
+    },
+    {
+      "src": "/provider",
+      "dest": "/provider.html"
+    },
+    {
+      "src": "/affiliate",
+      "dest": "/affiliate.html"
+    },
+    {
+      "src": "/admin",
+      "dest": "/admin.html"
+    },
+    {
+      "src": "/terms",
+      "dest": "/terms.html"
+    },
+    {
+      "src": "/privacy",
+      "dest": "/privacy.html"
     },
     {
       "src": "/(.*\\.html)",
