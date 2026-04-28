@@ -157,7 +157,7 @@
 // ── API config ─────────────────────────────────────────────────────────────
 var API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
   ? 'http://localhost:3001/api'
-  : 'https://roady-api.railway.app/api'; // replace with real Railway URL
+  : 'https://roady-production.up.railway.app/api'; // replace with real Railway URL
 
 var _token = localStorage.getItem('roady_token') || '';
 var _customerId = localStorage.getItem('roady_cid') || '';
