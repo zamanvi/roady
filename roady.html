@@ -64,8 +64,9 @@
 <div id="screen-capture" class="screen active">
   <div class="p-4 flex justify-between items-center"><div class="flex items-center gap-2"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="8" fill="#22c55e"/><path d="M4 20h2l1-4h14l1 4h2a1 1 0 000-2h-1l-1.5-5H8.5L7 18H6a1 1 0 000 2z" fill="white"/><circle cx="10" cy="21.5" r="2" fill="white"/><circle cx="22" cy="21.5" r="2" fill="white"/><path d="M20 14l3 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/><rect x="6" y="13" width="8" height="5" rx="1" fill="white" opacity="0.3"/><path d="M16 10v8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M13 10h6" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg><span class="text-xl font-bold tracking-tight">Roady</span></div><div class="flex gap-2 items-center"><div class="progress-dot done"></div><div class="h-px w-4 bg-gray-700"></div><div class="progress-dot active"></div><div class="h-px w-4 bg-gray-700"></div><div class="progress-dot"></div><div class="h-px w-4 bg-gray-700"></div><div class="progress-dot"></div><div class="h-px w-4 bg-gray-700"></div><div class="progress-dot"></div></div></div>
   <div class="flex flex-col items-center px-6 flex-1 w-full overflow-y-auto"><div class="w-full max-w-md py-4">
-    <h2 class="text-3xl font-bold mb-2 text-center">Need a Tow Now?</h2>
-    <p class="text-gray-400 mb-6 text-center text-sm">Show the problem and we will handle everything instantly</p>
+    <h2 class="text-3xl font-bold mb-1 text-center">Need a Tow Now?</h2>
+    <p class="text-green-400 font-bold text-center text-base mb-1 tracking-wide">Stuck? We move.</p>
+    <p class="text-gray-400 mb-6 text-center text-sm">Show the problem and we handle everything instantly</p>
     <div class="bg-gray-900 p-5 rounded-2xl mb-4"><label class="text-sm text-gray-400 block mb-3">&#x1F4F8; Capture Problem</label><label class="cursor-pointer block bg-gray-800 hover:bg-gray-700 transition p-4 rounded-xl text-center"><input id="media-input" type="file" accept="image/*,video/*" capture="environment" class="hidden"/><div class="text-lg font-medium">Tap to Take Photo / Video</div><div class="text-xs text-gray-400 mt-1">or use camera instantly</div></label><img id="preview-img" class="hidden object-cover" alt="preview"/><video id="preview-vid" class="hidden" controls></video></div>
     <div class="bg-gray-900 p-5 rounded-2xl mb-4"><label class="text-sm text-gray-400 block mb-2">&#x1F4DE; Phone Number</label><div class="flex gap-2"><span class="bg-gray-800 px-3 py-3 rounded-xl text-sm text-gray-400 whitespace-nowrap">+1</span><input id="phone-input" type="tel" placeholder="(555) 123-4567" class="flex-1 bg-gray-800 p-3 rounded-xl text-sm outline-none text-white"/></div><p class="text-xs text-gray-500 mt-2">We will send a verification code via SMS</p></div>
     <div class="bg-gray-900 p-4 rounded-2xl mb-6">
@@ -153,7 +154,7 @@
       <div class="pt-2"><div class="bg-gray-900 border border-gray-700 rounded-2xl p-3 mb-4 text-xs text-gray-400 text-center">&#x1F512; Escrow hold &bull; Released only after service complete</div><button id="confirm-bargain-btn" onclick="confirmBargain()" disabled class="bg-gray-700 text-gray-500 w-full py-5 rounded-2xl text-lg font-bold transition">Select a provider above</button></div>
     </div>
   </div></div>
-  <div class="text-center text-xs text-gray-600 py-6">AI Powered &bull; Real-time Dispatch &bull; Secure Payment</div>
+  <div class="text-center text-xs text-gray-600 py-6">Stuck? We move. &bull; AI Powered &bull; Secure Payment</div>
 </div>
 <!-- ═══ SCREEN 6: LIVE TRACKING ═══ -->
 <div id="screen-tracking" class="screen">
