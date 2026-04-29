@@ -18,7 +18,7 @@ initSocket(server);
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Admin-Key');
   if (req.method === 'OPTIONS') return res.sendStatus(200);
   next();
 });
@@ -46,6 +46,7 @@ app.use('/api/bids',      require('./routes/bids'));
 app.use('/api/providers', require('./routes/providers'));
 app.use('/api/affiliate', require('./routes/affiliate'));
 app.use('/api/payments',  require('./routes/payments'));
+app.use('/api/admin',     require('./routes/admin'));
 
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get('/health', (req, res) => res.json({ ok: true, env: process.env.NODE_ENV }));

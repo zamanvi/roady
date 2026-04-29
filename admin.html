@@ -1,233 +1,325 @@
-﻿<!DOCTYPE html><html lang="en"><head>
+<!DOCTYPE html><html lang="en"><head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Roady Admin — Affiliate Settings</title>
+<title>Roady Admin Panel</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
 *{-webkit-tap-highlight-color:transparent;box-sizing:border-box;}
 body{background:#000;color:#fff;font-family:ui-sans-serif,system-ui,sans-serif;margin:0;}
 .hidden{display:none!important;}
-.card{background:#0d0d0d;border:1px solid #1c1c1c;border-radius:18px;}
-.inp{width:100%;background:#0a0a0a;border:1px solid #1f2937;border-radius:12px;padding:11px 14px;color:#fff;font-size:14px;outline:none;transition:border .2s;}
+.screen{display:none;flex-direction:column;min-height:100vh;}
+.screen.active{display:flex;}
+.card{background:#0d0d0d;border:1px solid #1c1c1c;border-radius:16px;}
+.inp{width:100%;background:#0a0a0a;border:1px solid #1f2937;border-radius:12px;padding:12px 14px;color:#fff;font-size:14px;outline:none;transition:border .2s;}
 .inp:focus{border-color:#22c55e;}
-.btn-green{background:linear-gradient(135deg,#22c55e,#15803d);border-radius:14px;color:#fff;font-weight:800;cursor:pointer;border:none;transition:all .2s;}
+.btn-green{background:linear-gradient(135deg,#22c55e,#15803d);border-radius:14px;color:#fff;font-weight:800;cursor:pointer;border:none;transition:all .2s;padding:14px;}
 .btn-green:active{transform:scale(.97);}
-.btn-red{background:linear-gradient(135deg,#ef4444,#b91c1c);border-radius:14px;color:#fff;font-weight:700;cursor:pointer;border:none;}
-.btn-ghost{background:transparent;border:1px solid #1f2937;border-radius:12px;color:#6b7280;font-weight:600;cursor:pointer;}
-.stat{background:#0a0a0a;border:1px solid #1c1c1c;border-radius:14px;padding:14px 10px;text-align:center;flex:1;}
-.badge{font-size:10px;font-weight:800;padding:3px 8px;border-radius:999px;}
+.btn-red{background:#450a0a;border:1px solid #7f1d1d;border-radius:10px;color:#f87171;font-size:12px;font-weight:700;cursor:pointer;padding:6px 12px;}
+.btn-approve{background:#052e16;border:1px solid #166534;border-radius:10px;color:#4ade80;font-size:12px;font-weight:700;cursor:pointer;padding:6px 12px;}
+.tab-btn{flex:1;padding:9px 4px;text-align:center;font-size:11px;font-weight:700;border-radius:12px;cursor:pointer;transition:all .2s;background:transparent;border:none;color:#6b7280;}
+.tab-btn.active{background:#0d0d0d;color:#22c55e;border:1px solid #1c1c1c;}
+.badge{font-size:10px;font-weight:800;padding:3px 8px;border-radius:999px;display:inline-block;}
 .badge-green{background:#052e16;color:#4ade80;border:1px solid #166534;}
 .badge-yellow{background:#1c1300;color:#fbbf24;border:1px solid #92400e;}
 .badge-blue{background:#0c1a2e;color:#93c5fd;border:1px solid #1e3a5f;}
 .badge-red{background:#450a0a;color:#f87171;border:1px solid #7f1d1d;}
-.tab-btn{flex:1;padding:8px 4px;text-align:center;font-size:11px;font-weight:700;border-radius:12px;cursor:pointer;transition:all .2s;background:transparent;border:none;color:#6b7280;}
-.tab-btn.active{background:#0d0d0d;color:#22c55e;border:1px solid #1c1c1c;}
+.badge-gray{background:#111;color:#6b7280;border:1px solid #374151;}
+.stat{background:#0a0a0a;border:1px solid #1c1c1c;border-radius:14px;padding:14px 10px;text-align:center;}
 ::-webkit-scrollbar{width:0;}
-input::placeholder{color:#374151;}input[type=number]{color:#fff;}
-input[type=range]{-webkit-appearance:none;height:5px;background:#1f2937;border-radius:3px;outline:none;}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;background:#22c55e;border-radius:50%;cursor:pointer;}
-@media(min-width:1024px){
-  #panel-affiliate .card{max-width:480px;}
-  #panel-payouts .space-y-3,#panel-members .space-y-2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
-  #panel-payouts .space-y-3>*,#panel-members .space-y-2>*{margin:0;}
-}
+.row{border-bottom:1px solid #111;padding:12px 0;}
+.row:last-child{border-bottom:none;}
+@media(min-width:768px){body{display:flex;justify-content:center;background:#050505;}
+.screen{max-width:900px;width:100%;}}
 </style></head><body>
-<div class="max-w-md md:max-w-2xl lg:max-w-4xl mx-auto px-5 pt-6 pb-16 min-h-screen">
-<div class="flex items-center justify-between mb-6">
-<div class="flex items-center gap-2">
-<svg width="30" height="30" viewBox="0 0 34 34" fill="none"><rect width="34" height="34" rx="9" fill="#22c55e"/><path d="M4 20h2l1-4h14l1 4h2a1 1 0 000-2h-1l-1.5-5H8.5L7 18H6a1 1 0 000 2z" fill="white"/><circle cx="10" cy="21.5" r="2" fill="white"/><circle cx="22" cy="21.5" r="2" fill="white"/></svg>
-<div><p class="text-lg font-black leading-none">Roady Admin</p><p class="text-xs text-red-400 font-bold tracking-wider">ADMIN PANEL</p></div>
+
+<!-- LOGIN SCREEN -->
+<div id="screen-login" class="screen active">
+  <div class="flex flex-col items-center justify-center flex-1 px-6">
+    <div class="w-full max-w-sm">
+      <div class="flex items-center gap-2 justify-center mb-8">
+        <svg width="36" height="36" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#22c55e"/><path d="M4 20h2l1-4h14l1 4h2a1 1 0 000-2h-1l-1.5-5H8.5L7 18H6a1 1 0 000 2z" fill="white"/><circle cx="10" cy="21.5" r="2" fill="white"/><circle cx="22" cy="21.5" r="2" fill="white"/></svg>
+        <div><p class="text-xl font-black">Roady Admin</p><p class="text-xs text-red-400 font-bold tracking-widest">ADMIN PANEL</p></div>
+      </div>
+      <div class="card p-6">
+        <p class="text-sm text-gray-400 mb-4 text-center">Enter admin key to access panel</p>
+        <input id="login-key" type="password" class="inp mb-3" placeholder="Admin Key" onkeydown="if(event.key==='Enter')doLogin()"/>
+        <p id="login-err" class="text-red-400 text-xs mb-3 text-center hidden">Invalid key</p>
+        <button onclick="doLogin()" class="btn-green w-full text-base">Access Admin Panel</button>
+      </div>
+    </div>
+  </div>
 </div>
-<div class="flex gap-2">
-<a href="roady.html" class="text-xs text-gray-500 border border-gray-800 px-2.5 py-1.5 rounded-full">Customer</a>
-<a href="provider.html" class="text-xs text-gray-500 border border-gray-800 px-2.5 py-1.5 rounded-full">Provider</a>
+
+<!-- MAIN ADMIN SCREEN -->
+<div id="screen-main" class="screen">
+  <!-- Header -->
+  <div class="p-4 flex items-center justify-between border-b border-gray-900">
+    <div class="flex items-center gap-2">
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#22c55e"/><path d="M4 20h2l1-4h14l1 4h2a1 1 0 000-2h-1l-1.5-5H8.5L7 18H6a1 1 0 000 2z" fill="white"/><circle cx="10" cy="21.5" r="2" fill="white"/><circle cx="22" cy="21.5" r="2" fill="white"/></svg>
+      <div><p class="text-base font-black leading-none">Roady Admin</p><p class="text-xs text-red-400 font-bold">ADMIN PANEL</p></div>
+    </div>
+    <div class="flex gap-2 items-center">
+      <a href="roady.html" class="text-xs text-gray-500 border border-gray-800 px-2.5 py-1.5 rounded-full">Customer</a>
+      <a href="provider.html" class="text-xs text-gray-500 border border-gray-800 px-2.5 py-1.5 rounded-full">Provider</a>
+      <button onclick="doLogout()" class="text-xs text-red-500 border border-red-900 px-2.5 py-1.5 rounded-full">Logout</button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex bg-gray-950 border-b border-gray-900 px-3 py-2 gap-1">
+    <button class="tab-btn active" id="tab-overview" onclick="showTab('overview')">Overview</button>
+    <button class="tab-btn" id="tab-orders" onclick="showTab('orders')">Orders</button>
+    <button class="tab-btn" id="tab-providers" onclick="showTab('providers')">Providers</button>
+    <button class="tab-btn" id="tab-customers" onclick="showTab('customers')">Customers</button>
+    <button class="tab-btn" id="tab-affiliates" onclick="showTab('affiliates')">Affiliates</button>
+  </div>
+
+  <div class="flex-1 overflow-y-auto px-4 py-4">
+
+    <!-- OVERVIEW -->
+    <div id="panel-overview">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+        <div class="stat"><p class="text-2xl font-black text-green-400" id="stat-revenue">--</p><p class="text-xs text-gray-600 mt-1">Revenue</p></div>
+        <div class="stat"><p class="text-2xl font-black text-white" id="stat-jobs">--</p><p class="text-xs text-gray-600 mt-1">Total Jobs</p></div>
+        <div class="stat"><p class="text-2xl font-black text-blue-400" id="stat-providers">--</p><p class="text-xs text-gray-600 mt-1">Providers</p></div>
+        <div class="stat"><p class="text-2xl font-black text-yellow-400" id="stat-customers">--</p><p class="text-xs text-gray-600 mt-1">Customers</p></div>
+      </div>
+      <div class="card p-4 mb-3">
+        <p class="text-xs text-gray-500 uppercase tracking-widest font-semibold mb-3">Pending Approvals</p>
+        <div class="flex items-center justify-between">
+          <span class="text-sm text-gray-300">Providers awaiting approval</span>
+          <span class="badge badge-yellow" id="stat-pending">--</span>
+        </div>
+      </div>
+      <button onclick="loadAll()" class="w-full py-3 text-sm text-gray-500 border border-gray-800 rounded-2xl">Refresh Data</button>
+    </div>
+
+    <!-- ORDERS -->
+    <div id="panel-orders" class="hidden">
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-sm font-black">All Orders</p>
+        <button onclick="loadJobs()" class="text-xs text-gray-500 border border-gray-800 px-3 py-1.5 rounded-full">Refresh</button>
+      </div>
+      <div id="jobs-list"><p class="text-gray-600 text-sm text-center py-8">Loading...</p></div>
+    </div>
+
+    <!-- PROVIDERS -->
+    <div id="panel-providers" class="hidden">
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-sm font-black">All Providers</p>
+        <button onclick="loadProviders()" class="text-xs text-gray-500 border border-gray-800 px-3 py-1.5 rounded-full">Refresh</button>
+      </div>
+      <div id="providers-list"><p class="text-gray-600 text-sm text-center py-8">Loading...</p></div>
+    </div>
+
+    <!-- CUSTOMERS -->
+    <div id="panel-customers" class="hidden">
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-sm font-black">All Customers</p>
+        <button onclick="loadCustomers()" class="text-xs text-gray-500 border border-gray-800 px-3 py-1.5 rounded-full">Refresh</button>
+      </div>
+      <div id="customers-list"><p class="text-gray-600 text-sm text-center py-8">Loading...</p></div>
+    </div>
+
+    <!-- AFFILIATES -->
+    <div id="panel-affiliates" class="hidden">
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-sm font-black">Affiliate Referrals</p>
+        <button onclick="loadAffiliates()" class="text-xs text-gray-500 border border-gray-800 px-3 py-1.5 rounded-full">Refresh</button>
+      </div>
+      <div id="affiliates-list"><p class="text-gray-600 text-sm text-center py-8">Loading...</p></div>
+    </div>
+
+  </div>
 </div>
-</div>
-<div class="flex bg-gray-950 border border-gray-800 rounded-2xl p-1 mb-6">
-<button class="tab-btn active" id="tab-overview" onclick="showAdminTab('overview')">Overview</button>
-<button class="tab-btn" id="tab-affiliate" onclick="showAdminTab('affiliate')">Affiliate</button>
-<button class="tab-btn" id="tab-payouts" onclick="showAdminTab('payouts')">Payouts</button>
-<button class="tab-btn" id="tab-members" onclick="showAdminTab('members')">Members</button>
-</div>
-<div id="panel-overview">
-<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-<div class="stat"><p class="text-2xl font-black text-green-400">$12,840</p><p class="text-xs text-gray-600 mt-1">Total Revenue</p></div>
-<div class="stat"><p class="text-2xl font-black text-white">247</p><p class="text-xs text-gray-600 mt-1">Total Jobs</p></div>
-<div class="stat"><p class="text-2xl font-black text-blue-400">38</p><p class="text-xs text-gray-600 mt-1">Active Providers</p></div>
-<div class="stat"><p class="text-2xl font-black text-yellow-400">$890</p><p class="text-xs text-gray-600 mt-1">Aff. Payouts Pending</p></div>
-</div>
-<div class="card p-4 mb-4">
-<p class="text-xs text-gray-600 uppercase tracking-widest font-semibold mb-3">Affiliate Program Stats</p>
-<div class="space-y-2">
-<div class="flex justify-between"><span class="text-sm text-gray-400">Total affiliates</span><span class="text-sm font-black text-white">52</span></div>
-<div class="flex justify-between"><span class="text-sm text-gray-400">Active affiliates</span><span class="text-sm font-black text-green-400">31</span></div>
-<div class="flex justify-between"><span class="text-sm text-gray-400">Total referrals this month</span><span class="text-sm font-black text-white">18</span></div>
-<div class="flex justify-between"><span class="text-sm text-gray-400">Total commissions paid</span><span class="text-sm font-black text-white">$2,340</span></div>
-</div>
-</div>
-</div>
-<div id="panel-affiliate" class="hidden">
-<div class="card p-4 mb-4">
-<p class="text-xs text-gray-600 uppercase tracking-widest font-semibold mb-1">Customer Affiliate</p>
-<p class="text-xs text-gray-600 mb-4">Paid when referred customer completes first booking</p>
-<div class="mb-4">
-<div class="flex items-center justify-between mb-2"><label class="text-sm font-semibold text-white">Flat Reward per Referral</label><span class="text-green-400 font-black text-base" id="cust-flat-display">$10</span></div>
-<input type="range" id="cfg-cust-flat" min="1" max="50" value="10" class="w-full" oninput="updateDisplay()"/>
-<div class="flex justify-between text-xs text-gray-700 mt-1"><span>$1</span><span>$50</span></div>
-</div>
-</div>
-<div class="card p-4 mb-4">
-<p class="text-xs text-gray-600 uppercase tracking-widest font-semibold mb-1">Provider Affiliate</p>
-<p class="text-xs text-gray-600 mb-4">Paid when referred provider joins + ongoing cut from their revenue</p>
-<div class="mb-4">
-<div class="flex items-center justify-between mb-2"><label class="text-sm font-semibold text-white">Flat Signup Bonus</label><span class="text-green-400 font-black text-base" id="prov-flat-display">$50</span></div>
-<input type="range" id="cfg-prov-flat" min="10" max="200" value="50" class="w-full" oninput="updateDisplay()"/>
-<div class="flex justify-between text-xs text-gray-700 mt-1"><span>$10</span><span>$200</span></div>
-</div>
-<div class="mb-4">
-<div class="flex items-center justify-between mb-2"><label class="text-sm font-semibold text-white">Revenue Share (90 days)</label><span class="text-green-400 font-black text-base" id="prov-pct-display">1%</span></div>
-<input type="range" id="cfg-prov-pct" min="0" max="10" step="0.5" value="1" class="w-full" oninput="updateDisplay()"/>
-<div class="flex justify-between text-xs text-gray-700 mt-1"><span>0%</span><span>10%</span></div>
-</div>
-</div>
-<div class="card p-4 mb-4">
-<p class="text-xs text-gray-600 uppercase tracking-widest font-semibold mb-3">Payout Rules</p>
-<div class="space-y-3">
-<div><label class="text-xs text-gray-500 block mb-1 font-semibold">Minimum Payout Amount ($)</label><input id="cfg-min-payout" type="number" value="20" class="inp"/></div>
-<div><label class="text-xs text-gray-500 block mb-1 font-semibold">Payout Schedule</label>
-<select id="cfg-schedule" class="inp" style="color:#fff;background:#0a0a0a;"><option>Weekly</option><option>Bi-weekly</option><option>Monthly</option><option>On Request</option></select></div>
-</div>
-</div>
-<button onclick="saveConfig()" class="btn-green w-full py-4 text-base mb-2">Save Affiliate Settings</button>
-<p id="cfg-saved" class="text-green-400 text-xs text-center hidden">&#x2713; Settings saved &amp; applied to all affiliate dashboards</p>
-</div>
-<div id="panel-payouts" class="hidden">
-<div class="flex items-center justify-between mb-3">
-<p class="text-sm font-black">Pending Payouts</p>
-<span class="badge badge-yellow">3 pending</span>
-</div>
-<div class="space-y-3 mb-5">
-<div class="card p-3">
-<div class="flex items-center justify-between mb-2">
-<div><p class="text-sm font-bold text-white">Maria G.</p><span class="badge badge-green">Customer</span></div>
-<p class="text-base font-black text-green-400">$10</p>
-</div>
-<div class="flex gap-2">
-<button onclick="approvePayout(this,'Maria G.')" class="btn-green flex-1 py-2 text-xs">Approve</button>
-<button onclick="rejectPayout(this)" class="btn-ghost flex-1 py-2 text-xs text-red-500 border-red-900">Reject</button>
-</div>
-</div>
-<div class="card p-3">
-<div class="flex items-center justify-between mb-2">
-<div><p class="text-sm font-bold text-white">Houston Tow LLC</p><span class="badge badge-blue">Provider</span></div>
-<p class="text-base font-black text-green-400">$130</p>
-</div>
-<div class="flex gap-2">
-<button onclick="approvePayout(this,'Houston Tow LLC')" class="btn-green flex-1 py-2 text-xs">Approve</button>
-<button onclick="rejectPayout(this)" class="btn-ghost flex-1 py-2 text-xs text-red-500 border-red-900">Reject</button>
-</div>
-</div>
-<div class="card p-3">
-<div class="flex items-center justify-between mb-2">
-<div><p class="text-sm font-bold text-white">James R.</p><span class="badge badge-green">Customer</span></div>
-<p class="text-base font-black text-green-400">$20</p>
-</div>
-<div class="flex gap-2">
-<button onclick="approvePayout(this,'James R.')" class="btn-green flex-1 py-2 text-xs">Approve</button>
-<button onclick="rejectPayout(this)" class="btn-ghost flex-1 py-2 text-xs text-red-500 border-red-900">Reject</button>
-</div>
-</div>
-</div>
-</div>
-<div id="panel-members" class="hidden">
-<div class="flex items-center justify-between mb-3">
-<p class="text-sm font-black">All Affiliates</p>
-<span class="badge badge-green">52 total</span>
-</div>
-<div class="space-y-2">
-<div class="card p-3 flex items-center justify-between">
-<div class="flex-1">
-<div class="flex items-center gap-2"><p class="text-sm font-bold text-white">Maria G.</p><span class="badge badge-green">Customer</span></div>
-<p class="text-xs text-gray-600">2 referrals · $20 earned</p>
-</div>
-<a href="affiliate.html?type=customer&name=Maria%20G.&seed=Maria%20G." class="text-xs text-blue-400 font-semibold ml-3">View</a>
-</div>
-<div class="card p-3 flex items-center justify-between">
-<div class="flex-1">
-<div class="flex items-center gap-2"><p class="text-sm font-bold text-white">Houston Tow LLC</p><span class="badge badge-blue">Provider</span></div>
-<p class="text-xs text-gray-600">5 referrals · $310 earned</p>
-</div>
-<a href="affiliate.html?type=provider&name=Houston%20Tow%20LLC&seed=Houston%20Tow%20LLC" class="text-xs text-blue-400 font-semibold ml-3">View</a>
-</div>
-<div class="card p-3 flex items-center justify-between">
-<div class="flex-1">
-<div class="flex items-center gap-2"><p class="text-sm font-bold text-white">James R.</p><span class="badge badge-green">Customer</span></div>
-<p class="text-xs text-gray-600">1 referrals · $10 earned</p>
-</div>
-<a href="affiliate.html?type=customer&name=James%20R.&seed=James%20R." class="text-xs text-blue-400 font-semibold ml-3">View</a>
-</div>
-<div class="card p-3 flex items-center justify-between">
-<div class="flex-1">
-<div class="flex items-center gap-2"><p class="text-sm font-bold text-white">Atlas Roadside</p><span class="badge badge-blue">Provider</span></div>
-<p class="text-xs text-gray-600">3 referrals · $175 earned</p>
-</div>
-<a href="affiliate.html?type=provider&name=Atlas%20Roadside&seed=Atlas%20Roadside" class="text-xs text-blue-400 font-semibold ml-3">View</a>
-</div>
-<div class="card p-3 flex items-center justify-between">
-<div class="flex-1">
-<div class="flex items-center gap-2"><p class="text-sm font-bold text-white">Sandra M.</p><span class="badge badge-green">Customer</span></div>
-<p class="text-xs text-gray-600">4 referrals · $40 earned</p>
-</div>
-<a href="affiliate.html?type=customer&name=Sandra%20M.&seed=Sandra%20M." class="text-xs text-blue-400 font-semibold ml-3">View</a>
-</div>
-</div>
-</div>
+
 <script>
-function showAdminTab(t){
-  ["overview","affiliate","payouts","members"].forEach(function(x){
-    document.getElementById("panel-"+x).classList.toggle("hidden",x!==t);
-    document.getElementById("tab-"+x).classList.toggle("active",x===t);
+var API = location.hostname === 'localhost'
+  ? 'http://localhost:3001/api'
+  : 'https://roady-production.up.railway.app/api';
+
+var _adminKey = sessionStorage.getItem('roady_admin_key') || '';
+
+function adminFetch(path) {
+  return fetch(API + path, { headers: { 'x-admin-key': _adminKey } }).then(function(r) { return r.json(); });
+}
+
+function doLogin() {
+  var key = document.getElementById('login-key').value.trim();
+  if (!key) return;
+  _adminKey = key;
+  adminFetch('/admin/stats').then(function(data) {
+    if (data.error) {
+      document.getElementById('login-err').classList.remove('hidden');
+      return;
+    }
+    sessionStorage.setItem('roady_admin_key', key);
+    document.getElementById('screen-login').classList.remove('active');
+    document.getElementById('screen-main').classList.add('active');
+    renderStats(data);
+    document.getElementById('login-err').classList.add('hidden');
+  }).catch(function() {
+    document.getElementById('login-err').classList.remove('hidden');
   });
 }
-function updateDisplay(){
-  var cf=document.getElementById("cfg-cust-flat");
-  var pf=document.getElementById("cfg-prov-flat");
-  var pp=document.getElementById("cfg-prov-pct");
-  if(cf)document.getElementById("cust-flat-display").textContent="$"+cf.value;
-  if(pf)document.getElementById("prov-flat-display").textContent="$"+pf.value;
-  if(pp)document.getElementById("prov-pct-display").textContent=pp.value+"%";
+
+function doLogout() {
+  sessionStorage.removeItem('roady_admin_key');
+  _adminKey = '';
+  document.getElementById('screen-main').classList.remove('active');
+  document.getElementById('screen-login').classList.add('active');
+  document.getElementById('login-key').value = '';
 }
-function saveConfig(){
-  var cfg={
-    custFlat:parseInt(document.getElementById("cfg-cust-flat").value)||10,
-    provFlat:parseInt(document.getElementById("cfg-prov-flat").value)||50,
-    provPct:parseFloat(document.getElementById("cfg-prov-pct").value)||1,
-    minPayout:parseInt(document.getElementById("cfg-min-payout").value)||20,
-    payoutSchedule:document.getElementById("cfg-schedule").value
-  };
-  localStorage.setItem("roady_admin_aff",JSON.stringify(cfg));
-  var msg=document.getElementById("cfg-saved");
-  msg.classList.remove("hidden");
-  setTimeout(function(){msg.classList.add("hidden");},3000);
+
+function showTab(t) {
+  ['overview','orders','providers','customers','affiliates'].forEach(function(x) {
+    document.getElementById('panel-'+x).classList.toggle('hidden', x !== t);
+    document.getElementById('tab-'+x).classList.toggle('active', x === t);
+  });
+  if (t === 'orders') loadJobs();
+  else if (t === 'providers') loadProviders();
+  else if (t === 'customers') loadCustomers();
+  else if (t === 'affiliates') loadAffiliates();
 }
-function approvePayout(btn,name){
-  btn.closest(".card").style.cssText="opacity:.4;pointer-events:none;";
-  btn.textContent="Approved ✓";
-  btn.style.background="#166534";
+
+function renderStats(data) {
+  var totalJobs = Object.values(data.jobs || {}).reduce(function(a,b){return a+b;},0);
+  document.getElementById('stat-revenue').textContent = '$' + (data.revenue || 0).toFixed(0);
+  document.getElementById('stat-jobs').textContent = totalJobs;
+  document.getElementById('stat-providers').textContent = data.providers || 0;
+  document.getElementById('stat-customers').textContent = data.customers || 0;
+  document.getElementById('stat-pending').textContent = data.pendingProviders || 0;
 }
-function rejectPayout(btn){
-  if(!confirm("Reject this payout?"))return;
-  btn.closest(".card").style.cssText="opacity:.3;pointer-events:none;";
+
+function loadAll() {
+  adminFetch('/admin/stats').then(renderStats);
 }
-// Load saved config into sliders on page load
-window.addEventListener("DOMContentLoaded",function(){
-  try{var s=localStorage.getItem("roady_admin_aff");if(s){var c=JSON.parse(s);
-    if(c.custFlat){document.getElementById("cfg-cust-flat").value=c.custFlat;}
-    if(c.provFlat){document.getElementById("cfg-prov-flat").value=c.provFlat;}
-    if(c.provPct){document.getElementById("cfg-prov-pct").value=c.provPct;}
-    if(c.minPayout){document.getElementById("cfg-min-payout").value=c.minPayout;}
-    if(c.payoutSchedule){document.getElementById("cfg-schedule").value=c.payoutSchedule;}
-    updateDisplay();
-  }}catch(e){}
+
+function fmt(d) {
+  if (!d) return '--';
+  return new Date(d).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+}
+
+function statusBadge(s) {
+  var map = {open:'badge-yellow',accepted:'badge-blue',complete:'badge-green',cancelled:'badge-red'};
+  return '<span class="badge '+(map[s]||'badge-gray')+'">'+s+'</span>';
+}
+
+function loadJobs() {
+  document.getElementById('jobs-list').innerHTML = '<p class="text-gray-600 text-sm text-center py-8">Loading...</p>';
+  adminFetch('/admin/jobs').then(function(rows) {
+    if (!Array.isArray(rows)) { document.getElementById('jobs-list').innerHTML = '<p class="text-red-400 text-sm text-center py-4">Error loading jobs</p>'; return; }
+    if (!rows.length) { document.getElementById('jobs-list').innerHTML = '<p class="text-gray-600 text-sm text-center py-8">No orders yet</p>'; return; }
+    var html = rows.map(function(j) {
+      return '<div class="card p-3 mb-2">'
+        + '<div class="flex items-center justify-between mb-1">'
+        + '<span class="text-xs text-gray-500">#'+j.id+' &bull; '+fmt(j.created_at)+'</span>'
+        + statusBadge(j.status)
+        + '</div>'
+        + '<div class="text-sm font-semibold text-white mb-1">'+(j.location_text||'Location not set')+'</div>'
+        + '<div class="flex items-center justify-between text-xs text-gray-500">'
+        + '<span>📱 '+(j.customer_phone||'--')+'</span>'
+        + '<span>🚛 '+(j.provider_name||'Unassigned')+'</span>'
+        + '<span class="text-green-400 font-bold">'+(j.amount?'$'+parseFloat(j.amount).toFixed(2):'--')+'</span>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+    document.getElementById('jobs-list').innerHTML = html;
+  });
+}
+
+function loadProviders() {
+  document.getElementById('providers-list').innerHTML = '<p class="text-gray-600 text-sm text-center py-8">Loading...</p>';
+  adminFetch('/admin/providers').then(function(rows) {
+    if (!Array.isArray(rows)) { document.getElementById('providers-list').innerHTML = '<p class="text-red-400 text-sm text-center py-4">Error</p>'; return; }
+    if (!rows.length) { document.getElementById('providers-list').innerHTML = '<p class="text-gray-600 text-sm text-center py-8">No providers yet</p>'; return; }
+    var html = rows.map(function(p) {
+      var approved = p.is_approved;
+      return '<div class="card p-3 mb-2">'
+        + '<div class="flex items-center justify-between mb-1">'
+        + '<span class="font-bold text-sm text-white">'+(p.company_name||'--')+'</span>'
+        + (approved ? '<span class="badge badge-green">Approved</span>' : '<span class="badge badge-yellow">Pending</span>')
+        + '</div>'
+        + '<div class="text-xs text-gray-500 mb-2">'+p.owner_name+' &bull; '+(p.phone||'--')+' &bull; '+(p.city||'')+', '+(p.state||'')+'</div>'
+        + '<div class="text-xs text-gray-600 mb-2">Jobs: '+(p.job_count||0)+' &bull; Joined: '+fmt(p.created_at)+'</div>'
+        + '<div class="flex gap-2">'
+        + (approved
+            ? '<button onclick="blockProvider('+p.id+',this)" class="btn-red">Block</button>'
+            : '<button onclick="approveProvider('+p.id+',this)" class="btn-approve">Approve</button>')
+        + '</div>'
+        + '</div>';
+    }).join('');
+    document.getElementById('providers-list').innerHTML = html;
+  });
+}
+
+function approveProvider(id, btn) {
+  btn.textContent = '...';
+  fetch(API + '/admin/providers/' + id + '/approve', {
+    method: 'PATCH', headers: { 'x-admin-key': _adminKey }
+  }).then(function() { loadProviders(); });
+}
+
+function blockProvider(id, btn) {
+  if (!confirm('Block this provider?')) return;
+  btn.textContent = '...';
+  fetch(API + '/admin/providers/' + id + '/block', {
+    method: 'PATCH', headers: { 'x-admin-key': _adminKey }
+  }).then(function() { loadProviders(); });
+}
+
+function loadCustomers() {
+  document.getElementById('customers-list').innerHTML = '<p class="text-gray-600 text-sm text-center py-8">Loading...</p>';
+  adminFetch('/admin/customers').then(function(rows) {
+    if (!Array.isArray(rows)) { document.getElementById('customers-list').innerHTML = '<p class="text-red-400 text-sm text-center py-4">Error</p>'; return; }
+    if (!rows.length) { document.getElementById('customers-list').innerHTML = '<p class="text-gray-600 text-sm text-center py-8">No customers yet</p>'; return; }
+    var html = rows.map(function(c) {
+      return '<div class="row">'
+        + '<div class="flex items-center justify-between">'
+        + '<div>'
+        + '<p class="text-sm font-semibold text-white">'+(c.name||'No name')+'</p>'
+        + '<p class="text-xs text-gray-500">'+(c.phone||'--')+' &bull; Joined '+fmt(c.created_at)+'</p>'
+        + '</div>'
+        + '<span class="text-xs text-gray-400">'+c.job_count+' jobs</span>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+    document.getElementById('customers-list').innerHTML = '<div class="card px-4">'+html+'</div>';
+  });
+}
+
+function loadAffiliates() {
+  document.getElementById('affiliates-list').innerHTML = '<p class="text-gray-600 text-sm text-center py-8">Loading...</p>';
+  adminFetch('/admin/affiliates').then(function(rows) {
+    if (!Array.isArray(rows)) { document.getElementById('affiliates-list').innerHTML = '<p class="text-red-400 text-sm text-center py-4">Error</p>'; return; }
+    if (!rows.length) { document.getElementById('affiliates-list').innerHTML = '<p class="text-gray-600 text-sm text-center py-8">No affiliate referrals yet</p>'; return; }
+    var html = rows.map(function(a) {
+      return '<div class="card p-3 mb-2">'
+        + '<div class="flex items-center justify-between mb-1">'
+        + '<span class="font-semibold text-sm text-white">'+(a.referrer_name||'#'+a.referrer_id)+'</span>'
+        + '<span class="badge '+(a.referrer_type==='provider'?'badge-blue':'badge-green')+'">'+a.referrer_type+'</span>'
+        + '</div>'
+        + '<div class="text-xs text-gray-500">Code: '+a.code+' &bull; Bonus: $'+a.flat_bonus+(a.revenue_pct?' + '+a.revenue_pct+'%':'')+'</div>'
+        + '<div class="text-xs text-gray-600 mt-1">'+fmt(a.created_at)+' &bull; '+(a.paid_at?'<span class="text-green-400">Paid</span>':'<span class="text-yellow-400">Unpaid</span>')+'</div>'
+        + '</div>';
+    }).join('');
+    document.getElementById('affiliates-list').innerHTML = html;
+  });
+}
+
+// Auto-login if key stored
+window.addEventListener('DOMContentLoaded', function() {
+  if (_adminKey) {
+    adminFetch('/admin/stats').then(function(data) {
+      if (!data.error) {
+        document.getElementById('screen-login').classList.remove('active');
+        document.getElementById('screen-main').classList.add('active');
+        renderStats(data);
+      } else {
+        sessionStorage.removeItem('roady_admin_key');
+        _adminKey = '';
+      }
+    }).catch(function(){});
+  }
 });
 </script>
-</div></body></html>
+</body></html>
