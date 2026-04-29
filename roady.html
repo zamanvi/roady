@@ -63,30 +63,64 @@
 <!-- ═══ SCREEN 1: CAPTURE ═══ -->
 <div id="screen-capture" class="screen active">
   <div class="p-4 flex justify-between items-center"><div class="flex items-center gap-2"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="8" fill="#22c55e"/><path d="M4 20h2l1-4h14l1 4h2a1 1 0 000-2h-1l-1.5-5H8.5L7 18H6a1 1 0 000 2z" fill="white"/><circle cx="10" cy="21.5" r="2" fill="white"/><circle cx="22" cy="21.5" r="2" fill="white"/><path d="M20 14l3 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/><rect x="6" y="13" width="8" height="5" rx="1" fill="white" opacity="0.3"/><path d="M16 10v8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M13 10h6" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg><span class="text-xl font-bold tracking-tight">Roady</span></div><div class="flex gap-2 items-center"><div class="progress-dot done"></div><div class="h-px w-4 bg-gray-700"></div><div class="progress-dot active"></div><div class="h-px w-4 bg-gray-700"></div><div class="progress-dot"></div><div class="h-px w-4 bg-gray-700"></div><div class="progress-dot"></div><div class="h-px w-4 bg-gray-700"></div><div class="progress-dot"></div></div></div>
-  <div class="flex flex-col items-center px-6 flex-1 w-full overflow-y-auto"><div class="w-full max-w-md py-4">
-    <p class="text-green-400 font-bold text-center text-2xl mb-6 tracking-wide">Stuck? We move.</p>
-    <div class="bg-gray-900 p-5 rounded-2xl mb-4"><label class="cursor-pointer block"><input id="media-input" type="file" accept="image/*,video/*" capture="environment" class="hidden"/><div class="bg-gray-800 hover:bg-gray-700 transition p-5 rounded-xl text-center"><div class="text-3xl mb-2">📸</div><div class="text-base font-semibold text-white">Show the problem</div><div class="text-sm text-gray-400 mt-1">We handle everything instantly</div></div></label><img id="preview-img" class="hidden object-cover" alt="preview"/><video id="preview-vid" class="hidden" controls></video></div>
-    <div class="bg-gray-900 p-5 rounded-2xl mb-4"><label class="text-sm text-gray-400 block mb-2">&#x1F4DE; Phone Number</label><div class="flex gap-2"><span class="bg-gray-800 px-3 py-3 rounded-xl text-sm text-gray-400 whitespace-nowrap">+1</span><input id="phone-input" type="tel" placeholder="(555) 123-4567" class="flex-1 bg-gray-800 p-3 rounded-xl text-sm outline-none text-white"/></div><p class="text-xs text-gray-500 mt-2">We will send a verification code via SMS</p></div>
-    <div class="bg-gray-900 p-4 rounded-2xl mb-6">
-      <div class="flex items-center justify-between mb-3">
-        <span class="text-sm text-gray-400 font-medium">&#x1F4CD; Your Location</span>
+  <div class="flex flex-col items-center px-4 flex-1 w-full overflow-y-auto"><div class="w-full max-w-md py-4">
+    <p class="text-green-400 font-black text-center text-2xl mb-5 tracking-wide">Stuck? We move.</p>
+
+    <!-- Photo capture -->
+    <div class="mb-3">
+      <label class="cursor-pointer block">
+        <input id="media-input" type="file" accept="image/*,video/*" capture="environment" class="hidden"/>
+        <div class="bg-gray-900 border-2 border-dashed border-gray-700 hover:border-green-500 transition-all duration-200 p-6 rounded-2xl text-center">
+          <div class="text-4xl mb-2">📸</div>
+          <div class="text-base font-bold text-white mb-1">Show the problem</div>
+          <div class="text-xs text-gray-500">Tap to take a photo or video — AI reads it instantly</div>
+        </div>
+      </label>
+      <img id="preview-img" class="hidden object-cover rounded-2xl mt-2" alt="preview"/>
+      <video id="preview-vid" class="hidden rounded-2xl mt-2" controls></video>
+    </div>
+
+    <!-- Phone -->
+    <div class="bg-gray-900 rounded-2xl p-4 mb-3">
+      <label class="text-xs text-gray-500 uppercase tracking-widest font-semibold block mb-2">Phone Number</label>
+      <div class="flex gap-2">
+        <span class="bg-gray-800 px-3 py-3 rounded-xl text-sm text-gray-400 font-mono whitespace-nowrap">+1</span>
+        <input id="phone-input" type="tel" placeholder="(555) 123-4567" class="flex-1 bg-gray-800 p-3 rounded-xl text-sm outline-none text-white"/>
+      </div>
+      <p class="text-xs text-gray-600 mt-2">You'll receive a one-time code to verify</p>
+    </div>
+
+    <!-- Location -->
+    <div class="bg-gray-900 rounded-2xl p-4 mb-5">
+      <div class="flex items-center justify-between mb-2">
+        <label class="text-xs text-gray-500 uppercase tracking-widest font-semibold">Your Location</label>
         <span id="loc-status-badge" class="text-xs text-gray-600">Detecting...</span>
       </div>
       <div class="relative">
         <input id="manual-addr" type="text" placeholder="Street address or landmark..." class="w-full bg-gray-800 p-3 pr-10 rounded-xl text-sm outline-none text-white" autocomplete="off"/>
-        <button onclick="autoDetectLocation()" title="Use GPS" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-green-400 transition">&#x1F4CD;</button>
+        <button onclick="autoDetectLocation()" title="Use GPS" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-green-400 transition text-base">&#x1F4CD;</button>
         <div id="addr-suggestions" class="hidden absolute left-0 right-0 top-full mt-1 bg-gray-800 border border-gray-700 rounded-xl overflow-hidden z-50 shadow-xl"></div>
       </div>
-      <p id="loc-hint" class="text-xs text-gray-600 mt-2">Platform shares your location with the provider automatically</p>
+      <p id="loc-hint" class="text-xs text-gray-600 mt-2">Shared with your provider automatically</p>
     </div>
-    <p id="capture-error" class="text-red-400 text-sm text-center mb-3 hidden"></p>
-    <button id="send-code-btn" onclick="handleSendCode()" class="bg-green-500 w-full py-5 rounded-2xl text-lg font-semibold mb-4 transition">&#x1F680; Request Instant Help</button>
-    <div class="grid grid-cols-3 gap-3 text-xs text-center"><div class="bg-gray-800 py-3 rounded-xl">&#x26A1; Fastest</div><div class="bg-gray-800 py-3 rounded-xl">&#x1F4B0; Cheapest</div><div class="bg-gray-800 py-3 rounded-xl">&#x2B50; Best</div></div>
+
+    <p id="capture-error" class="text-red-400 text-xs text-center mb-3 hidden"></p>
+
+    <!-- CTA -->
+    <button id="send-code-btn" onclick="handleSendCode()" class="w-full py-4 rounded-2xl text-base font-black mb-4 transition-all duration-200 active:scale-95" style="background:linear-gradient(135deg,#22c55e,#15803d);color:#fff;letter-spacing:.02em;">
+      Get Help Now &rarr;
+    </button>
+
+    <!-- Trust badges -->
+    <div class="grid grid-cols-3 gap-2 mb-2">
+      <div class="bg-gray-900 py-3 rounded-xl text-center"><div class="text-base">⚡</div><div class="text-xs text-gray-400 mt-1">Fastest</div></div>
+      <div class="bg-gray-900 py-3 rounded-xl text-center"><div class="text-base">💰</div><div class="text-xs text-gray-400 mt-1">Best Price</div></div>
+      <div class="bg-gray-900 py-3 rounded-xl text-center"><div class="text-base">🔒</div><div class="text-xs text-gray-400 mt-1">Secure Pay</div></div>
+    </div>
   </div></div>
-  <div class="text-center text-xs text-gray-500 pt-4 pb-2">AI Powered &bull; Live Tracking &bull; Secure Payment</div>
-  <div class="text-center pb-8 px-6 pt-1">
-    <p class="text-xs text-gray-700 mb-1">For towing &amp; roadside businesses only</p>
-    <a href="provider.html" class="text-xs text-gray-600 underline underline-offset-2 hover:text-gray-400 transition">Provider / Business Portal &rarr;</a>
+  <div class="text-center text-xs text-gray-700 py-3">AI Powered &bull; Live Tracking &bull; Escrow Protected</div>
+  <div class="text-center pb-6 px-6">
+    <a href="provider.html" class="text-xs text-gray-600 underline underline-offset-2 hover:text-gray-400 transition">Are you a tow provider? Join here &rarr;</a>
   </div>
 </div>
 <!-- ═══ SCREEN 2: VERIFY ═══ -->
