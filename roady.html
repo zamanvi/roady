@@ -293,12 +293,20 @@ function handleSendCode(resend){
   var btn=document.getElementById("send-code-btn");
   if(!resend&&rawPhone.length<10){showError(errEl,"Enter valid 10-digit phone number.");return;}
   if(!coords&&!addr){
-    showError(errEl,"Location required — enter your address so the provider can find you.");
+    // Soft nudge — don't block, just highlight and warn once
+    document.getElementById("manual-addr").style.outline="2px solid #f59e0b";
+    document.getElementById("manual-addr").placeholder="Type your location (provider will call if unclear)";
+    document.getElementById("loc-hint").textContent="💡 Provider will call your number to confirm location if needed";
     document.getElementById("manual-addr").focus();
-    document.getElementById("manual-addr").style.borderColor="#ef4444";
-    return;
+    // Allow submit after 1.5s if user ignores (stranded user > perfect data)
+    if(!handleSendCode._locWarned){
+      handleSendCode._locWarned=true;
+      setTimeout(function(){handleSendCode._locWarned=false;},3000);
+      return;
+    }
   }
-  document.getElementById("manual-addr").style.borderColor="";
+  document.getElementById("manual-addr").style.outline="";
+  handleSendCode._locWarned=false;
   hideError(errEl);
   setBtn(btn,true,"Sending code...");
   function goToVerify(){
