@@ -172,7 +172,7 @@ function api(path, opts) {
   if (opts.body && typeof opts.body === 'object') opts.body = JSON.stringify(opts.body);
   return fetch(API + path, opts).then(function(r) {
     if (r.status === 401) { _token = ''; localStorage.removeItem('roady_token'); }
-    return r.json();
+    return r.json().catch(function(){ return {error:'Server error'}; });
   });
 }
 
@@ -230,10 +230,20 @@ function devSkipOTP(){
     .then(function(res){
       if(res.error){alert(res.error);return;}
       _token=res.token;
-      localStorage.setItem('roady_token',_token);
       _customerId=res.customer.id;
+      localStorage.setItem('roady_token',_token);
+      localStorage.setItem('roady_cid',_customerId);
+      var phone=document.getElementById("phone-input").value||"Dev User";
+      var addr=document.getElementById("manual-addr").value;
+      document.getElementById("dispatch-phone").textContent=phone;
+      document.getElementById("mode-phone").textContent="Phone: "+phone;
+      document.getElementById("mode-loc").textContent=coords?"GPS: "+coords.lat.toFixed(4)+","+coords.lng.toFixed(4):addr||"Location: --";
+      document.getElementById("mode-media").textContent=mediaFile?"File: "+mediaFile.name:"No media attached";
+      document.getElementById("final-phone").textContent="Phone: "+phone;
+      if(coords)document.getElementById("final-loc").textContent="Location: "+coords.lat.toFixed(5)+","+coords.lng.toFixed(5);
+      else if(addr)document.getElementById("final-loc").textContent="Location: "+addr;
       goTo('screen-dispatch');
-    }).catch(function(){alert('Dev login failed');});
+    }).catch(function(){alert('Dev login failed — wait for Railway redeploy (2 min) then retry');});
 }
 // ── Verify → create/login account → go to dispatch ─────────────────────────
 function handleVerify(){
@@ -428,7 +438,6 @@ function showError(el,msg){el.textContent=msg;el.classList.remove("hidden");}
 function hideError(el){el.textContent="";el.classList.add("hidden");}
 function setBtn(btn,disabled,label){btn.disabled=disabled;btn.textContent=label;btn.classList.toggle("bg-green-500",!disabled);btn.classList.toggle("bg-gray-700",disabled);btn.classList.toggle("text-gray-500",disabled);}
 </script>
-</body></html>
 <!-- ═══ SCREEN 8: PROFILE ═══ -->
 <div id="screen-profile" class="screen">
   <div class="p-4 flex justify-between items-center">
@@ -492,3 +501,4 @@ function setBtn(btn,disabled,label){btn.disabled=disabled;btn.textContent=label;
   </div></div>
   <div class="text-center text-xs text-gray-600 py-6">Roady &bull; AI Towing &bull; Secure &amp; Trusted</div>
 </div>
+</body></html>
