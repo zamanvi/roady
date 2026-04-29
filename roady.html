@@ -51,19 +51,15 @@
     <div class="bg-gray-900 p-5 rounded-2xl mb-4"><label class="text-sm text-gray-400 block mb-3">&#x1F4F8; Capture Problem</label><label class="cursor-pointer block bg-gray-800 hover:bg-gray-700 transition p-4 rounded-xl text-center"><input id="media-input" type="file" accept="image/*,video/*" capture="environment" class="hidden"/><div class="text-lg font-medium">Tap to Take Photo / Video</div><div class="text-xs text-gray-400 mt-1">or use camera instantly</div></label><img id="preview-img" class="hidden object-cover" alt="preview"/><video id="preview-vid" class="hidden" controls></video></div>
     <div class="bg-gray-900 p-5 rounded-2xl mb-4"><label class="text-sm text-gray-400 block mb-2">&#x1F4DE; Phone Number</label><div class="flex gap-2"><span class="bg-gray-800 px-3 py-3 rounded-xl text-sm text-gray-400 whitespace-nowrap">+1</span><input id="phone-input" type="tel" placeholder="(555) 123-4567" class="flex-1 bg-gray-800 p-3 rounded-xl text-sm outline-none text-white"/></div><p class="text-xs text-gray-500 mt-2">We will send a verification code via SMS</p></div>
     <div class="bg-gray-900 p-4 rounded-2xl mb-6">
-      <div class="flex items-center justify-between mb-3"><span class="text-sm text-gray-400 font-medium">&#x1F4CD; My Location</span><span id="live-badge" class="hidden blink text-xs bg-green-500 text-black px-2 py-0.5 rounded-full font-bold">LIVE</span></div>
-      <div class="flex gap-2 mb-4"><button class="loc-tab active" id="tab-type" onclick="switchLocMode('type')">&#x270F;&#xFE0F; Type</button><button class="loc-tab" id="tab-gps" onclick="switchLocMode('gps')">&#x1F4CD; GPS</button><button class="loc-tab" id="tab-device" onclick="switchLocMode('device')">&#x1F4E1; Live Device</button></div>
-      <div id="loc-mode-type"><input id="manual-addr" type="text" placeholder="Enter your street address..." class="w-full bg-gray-800 p-3 rounded-xl text-sm outline-none text-white mb-2"/><p class="text-xs text-gray-600">Type your address so the driver can find you</p></div>
-      <div id="loc-mode-gps" class="hidden"><button onclick="triggerGPS()" class="w-full bg-gray-800 hover:bg-gray-700 transition py-3 rounded-xl text-sm font-medium mb-3">&#x1F4CD; Get My GPS Location</button><div id="gps-result" class="hidden bg-gray-800 p-3 rounded-xl text-sm"><div id="gps-coords" class="text-white font-mono text-xs"></div><div id="gps-accuracy" class="text-gray-500 text-xs mt-1"></div><a id="gps-link" href="#" target="_blank" class="text-blue-400 underline text-xs mt-1 block">Open in Maps</a></div><p id="gps-status" class="text-xs text-gray-500 text-center"></p></div>
-      <div id="loc-mode-device" class="hidden"><div id="device-idle"><button onclick="startDeviceLive()" class="w-full bg-blue-700 hover:bg-blue-600 transition py-3 rounded-xl text-sm font-semibold mb-2">&#x1F4E1; Allow &amp; Start Live Tracking</button><p class="text-xs text-gray-600 text-center">Continuously updates your location as you move</p></div><div id="device-live" class="hidden"><div class="bg-gray-800 p-3 rounded-xl mb-3"><div id="device-coords" class="text-white font-mono text-xs"></div><div id="device-accuracy" class="text-gray-500 text-xs mt-1"></div><a id="device-link" href="#" target="_blank" class="text-blue-400 underline text-xs mt-1 block">Open in Maps</a></div><button onclick="stopDeviceLive()" class="w-full bg-red-700 hover:bg-red-600 transition py-2 rounded-xl text-sm font-medium">Stop Live Tracking</button></div></div>
-      <div id="share-panel" class="hidden mt-4 border-t border-gray-700 pt-4">
-        <p class="text-xs text-gray-500 mb-3 text-center">Send your location to someone</p>
-        <button id="share-main-btn" onclick="shareVia('smart')" class="w-full bg-blue-600 hover:bg-blue-500 transition py-3 rounded-xl text-sm font-semibold mb-2">&#x2B06; Share Location</button>
-        <div class="grid grid-cols-2 gap-2">
-          <button id="copy-btn" onclick="shareVia('copy')" class="bg-gray-800 hover:bg-gray-700 transition py-2.5 rounded-xl text-xs font-medium text-gray-300">&#x1F517; Copy Link</button>
-          <button onclick="shareVia('maps')" class="bg-gray-800 hover:bg-gray-700 transition py-2.5 rounded-xl text-xs font-medium text-gray-300">&#x1F5FA;&#xFE0F; Open Maps</button>
-        </div>
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-sm text-gray-400 font-medium">&#x1F4CD; Your Location</span>
+        <span id="loc-status-badge" class="text-xs text-gray-600">Detecting...</span>
       </div>
+      <div class="relative">
+        <input id="manual-addr" type="text" placeholder="Street address or landmark..." class="w-full bg-gray-800 p-3 pr-10 rounded-xl text-sm outline-none text-white"/>
+        <button onclick="autoDetectLocation()" title="Use GPS" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-green-400 transition">&#x1F4CD;</button>
+      </div>
+      <p id="loc-hint" class="text-xs text-gray-600 mt-2">Platform shares your location with the provider automatically</p>
     </div>
     <p id="capture-error" class="text-red-400 text-sm text-center mb-3 hidden"></p>
     <button id="send-code-btn" onclick="handleSendCode()" class="bg-green-500 w-full py-5 rounded-2xl text-lg font-semibold mb-4 transition">&#x1F680; Request Instant Help</button>
@@ -191,7 +187,7 @@ function api(path, opts) {
 // ── Global state ───────────────────────────────────────────────────────────
 var sentCode="", coords=null, mediaFile=null, mediaPreviewUrl=null;
 var _resendTimer=null;
-var watchId=null, isLiveTracking=false, locMode="type";
+var watchId=null, isLiveTracking=false;
 var selectedMode=null, selectedCard=null, currentProvider=null;
 var providerData={
   fastest:{name:"QuickTow Express",eta:"11 min",price:"$110",rating:"4.6 stars"},
@@ -206,30 +202,32 @@ document.getElementById("phone-input").addEventListener("input",function(){var d
 document.getElementById("code-input").addEventListener("input",function(){this.value=this.value.replace(/\D/g,"").slice(0,6);});
 // ── Media preview ──────────────────────────────────────────────────────────
 document.getElementById("media-input").addEventListener("change",function(){var f=this.files[0];if(!f)return;mediaFile=f;if(mediaPreviewUrl)URL.revokeObjectURL(mediaPreviewUrl);mediaPreviewUrl=URL.createObjectURL(f);var img=document.getElementById("preview-img"),vid=document.getElementById("preview-vid");if(f.type.startsWith("image")){img.src=mediaPreviewUrl;img.classList.remove("hidden");vid.classList.add("hidden");}else{vid.src=mediaPreviewUrl;vid.classList.remove("hidden");img.classList.add("hidden");}});
-// ── Location mode switcher ─────────────────────────────────────────────────
-function switchLocMode(mode){locMode=mode;if(mode!=="device")stopDeviceLive();["type","gps","device"].forEach(function(m){var t=document.getElementById("tab-"+m);if(m===mode)t.classList.add("active");else t.classList.remove("active");});document.getElementById("loc-mode-type").classList.toggle("hidden",mode!=="type");document.getElementById("loc-mode-gps").classList.toggle("hidden",mode!=="gps");document.getElementById("loc-mode-device").classList.toggle("hidden",mode!=="device");if(mode==="type"){coords=null;document.getElementById("share-panel").classList.add("hidden");}}
-// ── GPS one-shot ───────────────────────────────────────────────────────────
-function triggerGPS(){if(!navigator.geolocation){document.getElementById("gps-status").textContent="GPS not supported.";return;}document.getElementById("gps-status").textContent="Locating...";document.getElementById("gps-result").classList.add("hidden");navigator.geolocation.getCurrentPosition(function(pos){coords={lat:pos.coords.latitude,lng:pos.coords.longitude,acc:pos.coords.accuracy};document.getElementById("gps-status").textContent="";document.getElementById("gps-coords").textContent=coords.lat.toFixed(6)+", "+coords.lng.toFixed(6);document.getElementById("gps-accuracy").textContent=coords.acc?"Accuracy: +/-"+Math.round(coords.acc)+"m":"";document.getElementById("gps-link").href=mapsLink();document.getElementById("gps-result").classList.remove("hidden");showSharePanel();},function(){document.getElementById("gps-status").textContent="Could not get location. Check permissions.";},{timeout:10000,enableHighAccuracy:true});}
-// ── Live device tracking ───────────────────────────────────────────────────
-function startDeviceLive(){if(!navigator.geolocation){alert("Geolocation not supported.");return;}isLiveTracking=true;document.getElementById("device-idle").classList.add("hidden");document.getElementById("device-live").classList.remove("hidden");document.getElementById("live-badge").classList.remove("hidden");watchId=navigator.geolocation.watchPosition(function(pos){coords={lat:pos.coords.latitude,lng:pos.coords.longitude,acc:pos.coords.accuracy};document.getElementById("device-coords").textContent=coords.lat.toFixed(6)+", "+coords.lng.toFixed(6);document.getElementById("device-accuracy").textContent=coords.acc?"Accuracy: +/-"+Math.round(coords.acc)+"m":"";document.getElementById("device-link").href=mapsLink();showSharePanel();},function(){},{enableHighAccuracy:true,maximumAge:5000});}
-function stopDeviceLive(){if(watchId!==null){navigator.geolocation.clearWatch(watchId);watchId=null;}isLiveTracking=false;document.getElementById("live-badge").classList.add("hidden");document.getElementById("device-idle").classList.remove("hidden");document.getElementById("device-live").classList.add("hidden");coords=null;document.getElementById("share-panel").classList.add("hidden");}
-// ── Share panel ────────────────────────────────────────────────────────────
-function showSharePanel(){document.getElementById("share-panel").classList.remove("hidden");}
+// ── Location auto-detect (Uber-style: silent on load, GPS pin in field) ────
 function mapsLink(){return coords?"https://maps.google.com/?q="+coords.lat+","+coords.lng:"";}
-function shareMessage(){var addr=document.getElementById("manual-addr").value;if(locMode==="type"&&addr)return"Roady - I need a tow! My location: "+addr;return"Roady - I need a tow"+(isLiveTracking?" [LIVE]":"")+"! My location: "+mapsLink();}
+function setLocBadge(txt,color){var b=document.getElementById("loc-status-badge");if(b){b.textContent=txt;b.style.color=color||"";}}
+function autoDetectLocation(){
+  if(!navigator.geolocation){setLocBadge("GPS unavailable","#ef4444");return;}
+  setLocBadge("Detecting...","#9ca3af");
+  navigator.geolocation.getCurrentPosition(function(pos){
+    coords={lat:pos.coords.latitude,lng:pos.coords.longitude,acc:pos.coords.accuracy};
+    setLocBadge("📍 GPS located","#4ade80");
+    document.getElementById("loc-hint").textContent="Location confirmed — provider will see your exact position";
+    // Reverse geocode via free API for human-readable address
+    fetch("https://nominatim.openstreetmap.org/reverse?lat="+coords.lat+"&lon="+coords.lng+"&format=json")
+      .then(function(r){return r.json();}).then(function(d){
+        if(d&&d.display_name){document.getElementById("manual-addr").value=d.display_name.split(",").slice(0,3).join(",").trim();}
+      }).catch(function(){});
+  },function(){
+    setLocBadge("Enter manually","#f59e0b");
+    document.getElementById("loc-hint").textContent="Type your address below so the provider can find you";
+  },{timeout:8000,enableHighAccuracy:true});
+}
+// Auto-detect silently on page load
+window.addEventListener("DOMContentLoaded",function(){autoDetectLocation();});
 function shareVia(channel){
-  var msg=shareMessage(),link=locMode==="type"?"":mapsLink();
-  if(channel==="smart"){
-    if(navigator.share){
-      navigator.share({title:"My Location — Roady",text:msg,url:link||location.href}).catch(function(){});
-    } else {
-      navigator.clipboard.writeText(link||msg).then(function(){
-        var btn=document.getElementById("share-main-btn"),orig=btn.textContent;
-        btn.textContent="✓ Copied!";setTimeout(function(){btn.textContent=orig;},2000);
-      });
-    }
-  } else if(channel==="copy"){
-    navigator.clipboard.writeText(link||msg).then(function(){
+  var link=mapsLink();
+  if(channel==="copy"){
+    navigator.clipboard.writeText(link||location.href).then(function(){
       var btn=document.getElementById("copy-btn"),orig=btn.textContent;
       btn.textContent="✓ Copied!";setTimeout(function(){btn.textContent=orig;},2000);
     });
@@ -488,7 +486,7 @@ function saveProfile(){var name=document.getElementById("profile-name").value;do
 function currentScreenId(){var active=document.querySelector(".screen.active");return active?active.id:"screen-dispatch";}
 
 // ── Reset full app ──────────────────────────────────────────────────────────
-function resetApp(){sentCode="";coords=null;mediaFile=null;mediaPreviewUrl=null;watchId=null;isLiveTracking=false;locMode="type";selectedMode=null;selectedCard=null;currentProvider=null;document.getElementById("phone-input").value="";document.getElementById("manual-addr").value="";document.getElementById("code-input").value="";document.getElementById("preview-img").classList.add("hidden");document.getElementById("preview-vid").classList.add("hidden");document.getElementById("share-panel").classList.add("hidden");document.getElementById("gps-result").classList.add("hidden");switchLocMode("type");goTo("screen-capture");}
+function resetApp(){sentCode="";coords=null;mediaFile=null;mediaPreviewUrl=null;watchId=null;isLiveTracking=false;selectedMode=null;selectedCard=null;currentProvider=null;document.getElementById("phone-input").value="";document.getElementById("manual-addr").value="";document.getElementById("code-input").value="";document.getElementById("preview-img").classList.add("hidden");document.getElementById("preview-vid").classList.add("hidden");setLocBadge("Detecting...","#9ca3af");autoDetectLocation();goTo("screen-capture");}
 // ── Skip verify (DEV ONLY — remove before production) ──────────────────────
 function skipVerify(){var phone=document.getElementById("phone-input").value,addr=document.getElementById("manual-addr").value;document.getElementById("dispatch-phone").textContent=phone;document.getElementById("mode-phone").textContent=phone?"Phone: "+phone:"--";document.getElementById("mode-loc").textContent=coords?"GPS: "+coords.lat.toFixed(4)+", "+coords.lng.toFixed(4):addr?addr:"Location: --";document.getElementById("mode-media").textContent=mediaFile?"File: "+mediaFile.name:"No media attached";if(coords){document.getElementById("final-loc").textContent="Location: "+coords.lat.toFixed(5)+", "+coords.lng.toFixed(5);}else if(addr){document.getElementById("final-loc").textContent="Location: "+addr;}document.getElementById("final-phone").textContent=phone?"Phone: "+phone:"";goTo("screen-dispatch");}
 
