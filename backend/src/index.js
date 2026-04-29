@@ -14,19 +14,10 @@ const server = http.createServer(app);
 initSocket(server);
 
 // ── Security ──────────────────────────────────────────────────────────────────
-app.use(helmet());
-const allowedOrigins = [
-  'https://roady-bj1u.vercel.app',
-  process.env.CORS_ORIGIN,
-].filter(Boolean);
-app.use(cors({
-  origin: function(origin, cb) {
-    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
-    cb(null, true); // allow all during testing
-  },
-  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+// cors before helmet so preflight OPTIONS is handled correctly
+app.use(cors({ origin: true, methods: ['GET','POST','PATCH','DELETE','OPTIONS'], allowedHeaders: ['Content-Type','Authorization'], credentials: true }));
+app.options('*', cors());
+app.use(helmet({ crossOriginResourcePolicy: false }));
 
 // Stripe webhook needs raw body — must be before express.json()
 app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
