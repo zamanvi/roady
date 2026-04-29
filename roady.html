@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Roady - AI Towing</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
   <style>
     *{-webkit-tap-highlight-color:transparent;box-sizing:border-box;}
     body{background:#000;color:#fff;font-family:ui-sans-serif,system-ui,sans-serif;margin:0;}
@@ -29,6 +32,7 @@
     .progress-dot{width:8px;height:8px;border-radius:50%;background:#374151;}
     .progress-dot.done{background:#22c55e;}
     .progress-dot.active{background:#2563eb;}
+    #track-map{height:260px;border-radius:16px;overflow:hidden;background:#1f2937;}
     /* ── Responsive: tablet/desktop ── */
     @media (min-width:768px){
       body{background:#0a0a0a;display:flex;justify-content:center;}
@@ -134,7 +138,8 @@
   <div class="p-4 flex justify-between items-center"><div class="flex items-center gap-2"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="8" fill="#22c55e"/><path d="M4 20h2l1-4h14l1 4h2a1 1 0 000-2h-1l-1.5-5H8.5L7 18H6a1 1 0 000 2z" fill="white"/><circle cx="10" cy="21.5" r="2" fill="white"/><circle cx="22" cy="21.5" r="2" fill="white"/><path d="M20 14l3 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/><rect x="6" y="13" width="8" height="5" rx="1" fill="white" opacity="0.3"/><path d="M16 10v8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M13 10h6" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg><span class="text-xl font-bold tracking-tight">Roady</span></div><div class="flex items-center gap-2"><span class="text-xs bg-green-500 text-black px-2 py-0.5 rounded-full font-bold blink">ON THE WAY</span><button onclick="openProfile(currentScreenId())" class="w-9 h-9 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition border-2 border-gray-600"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#9ca3af"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/></svg></button></div></div>
   <div class="flex flex-col items-center px-6 flex-1 overflow-y-auto"><div class="w-full max-w-md py-4">
     <div class="bg-gray-900 rounded-2xl p-6 mb-4 text-center"><div class="text-5xl font-black text-green-400 mb-1" id="track-eta">--</div><div class="text-gray-400 text-sm mb-4">Estimated arrival</div><div class="bg-gray-800 h-2 rounded-full overflow-hidden"><div id="eta-bar" class="bg-green-500 h-2 rounded-full transition-all duration-1000" style="width:5%"></div></div></div>
-    <div class="bg-gray-900 rounded-2xl p-4 mb-4"><div class="text-xs text-gray-500 uppercase tracking-wide mb-3">Assigned Provider</div><div class="flex items-center gap-4 mb-4"><div class="w-14 h-14 bg-gray-700 rounded-full flex items-center justify-center text-2xl">&#x1F69B;</div><div class="flex-1"><div class="font-bold" id="track-name">--</div><div class="text-yellow-400 text-xs" id="track-rating">--</div><div class="text-green-400 text-xs mt-0.5" id="track-price">--</div></div><a href="tel:+15551234" class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-xl text-sm font-semibold transition">&#x1F4DE; Call</a></div><a id="track-map-link" href="https://maps.google.com" target="_blank" class="block bg-gray-800 hover:bg-gray-700 transition py-3 rounded-xl text-sm text-center text-blue-400">&#x1F5FA;&#xFE0F; Track on Map</a></div>
+    <div class="bg-gray-900 rounded-2xl p-4 mb-4"><div class="text-xs text-gray-500 uppercase tracking-wide mb-3">Assigned Provider</div><div class="flex items-center gap-4 mb-4"><div class="w-14 h-14 bg-gray-700 rounded-full flex items-center justify-center text-2xl">&#x1F69B;</div><div class="flex-1"><div class="font-bold" id="track-name">--</div><div class="text-yellow-400 text-xs" id="track-rating">--</div><div class="text-green-400 text-xs mt-0.5" id="track-price">--</div></div><a href="tel:+15551234" class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-xl text-sm font-semibold transition">&#x1F4DE; Call</a></div><div id="track-map" class="mb-2 rounded-2xl overflow-hidden" style="height:260px;"></div>
+<a id="track-map-link" href="https://maps.google.com" target="_blank" class="block text-center text-xs text-blue-400 underline mb-2">Open in Google Maps</a></div>
     <div class="bg-gray-900 rounded-2xl p-4 mb-4"><div class="text-xs text-gray-500 uppercase tracking-wide mb-3">Payment (Escrow)</div><div class="space-y-2 text-sm"><div class="flex items-center justify-between"><span class="text-gray-300">&#x1F512; Held Amount</span><span class="text-yellow-400 font-medium" id="track-price-esc">--</span></div><div class="flex items-center justify-between"><span class="text-gray-300">Status</span><span class="text-yellow-300 text-xs bg-yellow-900 px-2 py-0.5 rounded-full">Held until complete</span></div><div class="flex items-center justify-between"><span class="text-gray-300">Release</span><span class="text-gray-400 text-xs">After you confirm service</span></div></div></div>
     <div class="bg-gray-900 rounded-2xl p-4 mb-6"><div class="text-xs text-gray-500 uppercase tracking-wide mb-3">Safety &amp; Dispute</div><div class="grid grid-cols-2 gap-2"><button class="bg-gray-800 hover:bg-gray-700 py-3 rounded-xl text-xs font-medium transition">&#x26A0;&#xFE0F; Report Issue</button><button class="bg-gray-800 hover:bg-gray-700 py-3 rounded-xl text-xs font-medium transition">&#x1F4F8; Upload Evidence</button></div></div>
     <button onclick="goTo('screen-complete')" class="bg-green-500 hover:bg-green-400 w-full py-5 rounded-2xl text-lg font-bold transition">&#x2705; Service Complete - Release Payment</button>
@@ -360,8 +365,54 @@ function _confirmJobWithProvider(providerId,name,eta,price,rating){
       showTracking(name,eta,price,rating);
     }).catch(function(){showTracking(name,eta,price,rating);});
 }
+// ── Live tracking map + socket ─────────────────────────────────────────────
+var _trackMap=null,_providerMarker=null,_customerMarker=null,_trackSocket=null;
+var _providerIcon=null,_customerIcon=null;
+
+function initTrackingMap(){
+  if(!window.L)return;
+  var center=coords?[coords.lat,coords.lng]:[37.7749,-122.4194];
+  if(_trackMap){_trackMap.invalidateSize();if(coords)_trackMap.setView(center,14);return;}
+  _trackMap=L.map('track-map',{zoomControl:true,attributionControl:false}).setView(center,14);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(_trackMap);
+  _customerIcon=L.divIcon({html:'<div style="background:#3b82f6;width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.6)"></div>',iconSize:[16,16],iconAnchor:[8,8],className:''});
+  _providerIcon=L.divIcon({html:'<div style="font-size:26px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))">🚛</div>',iconSize:[32,32],iconAnchor:[16,16],className:''});
+  if(coords){_customerMarker=L.marker([coords.lat,coords.lng],{icon:_customerIcon}).addTo(_trackMap).bindPopup('Your location');}
+  var provStart=coords?[coords.lat+0.008,coords.lng+0.008]:[37.783,-122.41];
+  _providerMarker=L.marker(provStart,{icon:_providerIcon}).addTo(_trackMap).bindPopup('Provider en route');
+  if(coords&&_trackMap){_trackMap.fitBounds([[coords.lat,coords.lng],provStart],{padding:[40,40]});}
+}
+
+function startTrackingSocket(jobId){
+  if(!_token||_token==='dev-token-local')return;
+  if(_trackSocket){_trackSocket.disconnect();}
+  var base=API.replace('/api','');
+  _trackSocket=io(base,{auth:{token:_token},transports:['websocket','polling']});
+  _trackSocket.on('provider:location',function(data){
+    if(_providerMarker&&data.lat&&data.lng){
+      var ll=L.latLng(data.lat,data.lng);
+      _providerMarker.setLatLng(ll);
+      if(_trackMap)_trackMap.panTo(ll,{animate:true,duration:0.8});
+    }
+  });
+}
+
+function stopTrackingSocket(){if(_trackSocket){_trackSocket.disconnect();_trackSocket=null;}}
+
 // ── Show tracking screen ───────────────────────────────────────────────────
-function showTracking(name,eta,price,rating){currentProvider={name:name,eta:eta,price:price,rating:rating};document.getElementById("track-name").textContent=name;document.getElementById("track-eta").textContent=eta;document.getElementById("track-rating").textContent=rating;document.getElementById("track-price").textContent="Est. "+price;document.getElementById("track-price-esc").textContent=price;document.getElementById("final-provider").textContent="Provider: "+name+" - "+price;if(mapsLink())document.getElementById("track-map-link").href=mapsLink();goTo("screen-tracking");animateETA();}
+function showTracking(name,eta,price,rating){
+  currentProvider={name:name,eta:eta,price:price,rating:rating};
+  document.getElementById("track-name").textContent=name;
+  document.getElementById("track-eta").textContent=eta;
+  document.getElementById("track-rating").textContent=rating;
+  document.getElementById("track-price").textContent="Est. "+price;
+  document.getElementById("track-price-esc").textContent=price;
+  document.getElementById("final-provider").textContent="Provider: "+name+" - "+price;
+  if(mapsLink())document.getElementById("track-map-link").href=mapsLink();
+  goTo("screen-tracking");
+  animateETA();
+  setTimeout(function(){initTrackingMap();startTrackingSocket(null);},200);
+}
 function animateETA(){var bar=document.getElementById("eta-bar"),pct=5;var iv=setInterval(function(){pct+=2;bar.style.width=pct+"%";if(pct>=95)clearInterval(iv);},800);}
 // ── Rating ─────────────────────────────────────────────────────────────────
 function rateStar(n){var stars=document.getElementById("stars").children;for(var i=0;i<stars.length;i++){stars[i].style.opacity=i<n?"1":"0.3";}}
