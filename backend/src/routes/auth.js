@@ -72,14 +72,19 @@ router.post('/customer/verify-otp', async (req, res) => {
 
 // ── DEV: skip OTP login (remove before go-live) ───────────────────────────────
 router.post('/customer/dev-login', async (req, res) => {
-  const phone = '+10000000000';
-  const { rows } = await db.query(
-    `INSERT INTO customers (phone) VALUES ($1)
-     ON CONFLICT (phone) DO UPDATE SET phone = EXCLUDED.phone RETURNING *`,
-    [phone]
-  );
-  const token = signToken({ id: rows[0].id, role: 'customer', phone });
-  res.json({ token, customer: { id: rows[0].id, phone, name: rows[0].name } });
+  try {
+    const phone = '+10000000000';
+    const { rows } = await db.query(
+      `INSERT INTO customers (phone) VALUES ($1)
+       ON CONFLICT (phone) DO UPDATE SET phone = EXCLUDED.phone RETURNING *`,
+      [phone]
+    );
+    const token = signToken({ id: rows[0].id, role: 'customer', phone });
+    res.json({ token, customer: { id: rows[0].id, phone, name: rows[0].name || 'Dev User' } });
+  } catch (err) {
+    console.error('dev-login error:', err.message);
+    res.status(500).json({ error: 'DB error: ' + err.message });
+  }
 });
 
 // ── Provider: register ────────────────────────────────────────────────────────
