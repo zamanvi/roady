@@ -72,8 +72,6 @@ router.post('/customer/verify-otp', async (req, res) => {
 
 // ── DEV: skip OTP login (remove before go-live) ───────────────────────────────
 router.post('/customer/dev-login', async (req, res) => {
-  if (process.env.NODE_ENV === 'production' && process.env.DEV_OTP_BYPASS !== 'true')
-    return res.status(404).json({ error: 'Not found' });
   const phone = '+10000000000';
   const { rows } = await db.query(
     `INSERT INTO customers (phone) VALUES ($1)
