@@ -157,8 +157,8 @@
     <h2 class="text-2xl font-bold mb-2">Service Complete!</h2>
     <p class="text-gray-400 text-sm mb-6">Payment released from escrow. Thank you for using Roady.</p>
     <div class="bg-gray-900 rounded-2xl p-5 w-full max-w-sm mb-6 text-left"><div class="text-xs text-gray-500 mb-3 uppercase tracking-wide">Summary</div><div id="final-phone" class="text-sm text-gray-300 mb-1"></div><div id="final-loc" class="text-sm text-gray-300 mb-1"></div><div id="final-provider" class="text-sm text-gray-300"></div></div>
-    <div class="bg-gray-900 rounded-2xl p-5 w-full max-w-sm mb-6"><div class="text-sm text-gray-400 mb-3">Rate your experience</div><div class="flex justify-center gap-3 text-4xl mb-4" id="stars"><span class="cursor-pointer opacity-40 hover:opacity-100 transition" onclick="rateStar(1)">&#x2B50;</span><span class="cursor-pointer opacity-40 hover:opacity-100 transition" onclick="rateStar(2)">&#x2B50;</span><span class="cursor-pointer opacity-40 hover:opacity-100 transition" onclick="rateStar(3)">&#x2B50;</span><span class="cursor-pointer opacity-40 hover:opacity-100 transition" onclick="rateStar(4)">&#x2B50;</span><span class="cursor-pointer opacity-40 hover:opacity-100 transition" onclick="rateStar(5)">&#x2B50;</span></div><textarea placeholder="Leave a comment (optional)..." class="w-full bg-gray-800 p-3 rounded-xl text-sm outline-none text-white resize-none h-20"></textarea></div>
-    <button class="bg-blue-600 hover:bg-blue-500 w-full max-w-sm py-4 rounded-2xl font-bold text-base transition mb-3">Submit Review</button>
+    <div class="bg-gray-900 rounded-2xl p-5 w-full max-w-sm mb-6"><div class="text-sm text-gray-400 mb-3">Rate your experience</div><div class="flex justify-center gap-3 text-4xl mb-4" id="stars"><span class="cursor-pointer opacity-40 hover:opacity-100 transition" onclick="rateStar(1)">&#x2B50;</span><span class="cursor-pointer opacity-40 hover:opacity-100 transition" onclick="rateStar(2)">&#x2B50;</span><span class="cursor-pointer opacity-40 hover:opacity-100 transition" onclick="rateStar(3)">&#x2B50;</span><span class="cursor-pointer opacity-40 hover:opacity-100 transition" onclick="rateStar(4)">&#x2B50;</span><span class="cursor-pointer opacity-40 hover:opacity-100 transition" onclick="rateStar(5)">&#x2B50;</span></div><textarea id="review-text" placeholder="Leave a comment (optional)..." class="w-full bg-gray-800 p-3 rounded-xl text-sm outline-none text-white resize-none h-20"></textarea></div>
+    <button onclick="submitReview()" id="submit-review-btn" class="bg-blue-600 hover:bg-blue-500 w-full max-w-sm py-4 rounded-2xl font-bold text-base transition mb-3">Submit Review</button>
     <button onclick="resetApp()" class="text-gray-500 text-sm underline">New Request</button>
   </div>
   <div class="text-center text-xs text-gray-600 py-6">AI Powered &bull; Real-time Dispatch &bull; Secure Payment</div>
@@ -444,7 +444,20 @@ function showTracking(name,eta,price,rating,proxyNumber){
 }
 function animateETA(){var bar=document.getElementById("eta-bar"),pct=5;var iv=setInterval(function(){pct+=2;bar.style.width=pct+"%";if(pct>=95)clearInterval(iv);},800);}
 // ── Rating ─────────────────────────────────────────────────────────────────
-function rateStar(n){var stars=document.getElementById("stars").children;for(var i=0;i<stars.length;i++){stars[i].style.opacity=i<n?"1":"0.3";}}
+var _selectedRating=0;
+function rateStar(n){_selectedRating=n;var stars=document.getElementById("stars").children;for(var i=0;i<stars.length;i++){stars[i].style.opacity=i<n?"1":"0.3";}}
+function submitReview(){
+  var btn=document.getElementById("submit-review-btn");
+  var review=document.getElementById("review-text").value.trim();
+  btn.textContent="Submitting...";btn.disabled=true;
+  if(_currentJobId&&_token&&_token!=="dev-token-local"){
+    api("/jobs/"+_currentJobId+"/complete",{method:"POST",body:{rating:_selectedRating||5,review:review}})
+      .then(function(){_selectedRating=0;resetApp();})
+      .catch(function(){resetApp();});
+  } else {
+    setTimeout(function(){_selectedRating=0;resetApp();},600);
+  }
+}
 // ── Profile ────────────────────────────────────────────────────────────────
 var profilePrevScreen="screen-dispatch";
 function profileBack(){goTo(profilePrevScreen);}
