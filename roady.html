@@ -74,8 +74,9 @@
         <span id="loc-status-badge" class="text-xs text-gray-600">Detecting...</span>
       </div>
       <div class="relative">
-        <input id="manual-addr" type="text" placeholder="Street address or landmark..." class="w-full bg-gray-800 p-3 pr-10 rounded-xl text-sm outline-none text-white"/>
+        <input id="manual-addr" type="text" placeholder="Street address or landmark..." class="w-full bg-gray-800 p-3 pr-10 rounded-xl text-sm outline-none text-white" autocomplete="off"/>
         <button onclick="autoDetectLocation()" title="Use GPS" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-green-400 transition">&#x1F4CD;</button>
+        <div id="addr-suggestions" class="hidden absolute left-0 right-0 top-full mt-1 bg-gray-800 border border-gray-700 rounded-xl overflow-hidden z-50 shadow-xl"></div>
       </div>
       <p id="loc-hint" class="text-xs text-gray-600 mt-2">Platform shares your location with the provider automatically</p>
     </div>
@@ -249,7 +250,50 @@ function autoDetectLocation(){
   },{timeout:8000,enableHighAccuracy:true});
 }
 // Auto-detect silently on page load
-window.addEventListener("DOMContentLoaded",function(){autoDetectLocation();});
+window.addEventListener("DOMContentLoaded",function(){
+  autoDetectLocation();
+  initAddrAutocomplete();
+});
+
+// ── Address autocomplete (Nominatim/OpenStreetMap — free, no key) ─────────────
+function initAddrAutocomplete(){
+  var inp=document.getElementById("manual-addr");
+  var box=document.getElementById("addr-suggestions");
+  var _t=null;
+  inp.addEventListener("input",function(){
+    clearTimeout(_t);
+    var q=inp.value.trim();
+    if(q.length<3){box.classList.add("hidden");box.innerHTML="";return;}
+    _t=setTimeout(function(){fetchSuggestions(q,box,inp);},350);
+  });
+  document.addEventListener("click",function(e){
+    if(!box.contains(e.target)&&e.target!==inp)box.classList.add("hidden");
+  });
+}
+
+function fetchSuggestions(q,box,inp){
+  fetch("https://nominatim.openstreetmap.org/search?format=json&limit=5&q="+encodeURIComponent(q),
+    {headers:{"Accept-Language":"en"}})
+  .then(function(r){return r.json();})
+  .then(function(results){
+    if(!results.length){box.classList.add("hidden");return;}
+    box.innerHTML=results.map(function(r,i){
+      var label=r.display_name.split(",").slice(0,4).join(", ");
+      return '<div class="suggestion-item px-3 py-2.5 text-sm text-gray-200 cursor-pointer hover:bg-gray-700 border-b border-gray-700 last:border-0" data-lat="'+r.lat+'" data-lng="'+r.lon+'" data-label="'+label+'">'+
+        '<span class="text-gray-400 mr-1">📍</span>'+label+'</div>';
+    }).join("");
+    box.classList.remove("hidden");
+    box.querySelectorAll(".suggestion-item").forEach(function(el){
+      el.addEventListener("click",function(){
+        inp.value=el.dataset.label;
+        coords={lat:parseFloat(el.dataset.lat),lng:parseFloat(el.dataset.lng),acc:50};
+        setLocBadge("📍 Location set","#4ade80");
+        document.getElementById("loc-hint").textContent="Location confirmed — provider will see your exact position";
+        box.classList.add("hidden");
+      });
+    });
+  }).catch(function(){box.classList.add("hidden");});
+}
 function shareVia(channel){
   var link=mapsLink();
   if(channel==="copy"){
