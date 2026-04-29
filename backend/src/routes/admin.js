@@ -18,7 +18,7 @@ router.get('/stats', async (req, res) => {
       db.query('SELECT COUNT(*) FROM customers'),
       db.query('SELECT COUNT(*) FROM providers'),
       db.query('SELECT COUNT(*), status FROM jobs GROUP BY status'),
-      db.query(`SELECT COALESCE(SUM(amount),0) as total FROM payments WHERE status='released'`),
+      db.query(`SELECT COALESCE(SUM(amount_total),0) as total FROM payments WHERE status='released'`),
       db.query(`SELECT COUNT(*) FROM providers WHERE is_active = false OR is_active IS NULL`),
     ]);
 
@@ -92,7 +92,7 @@ router.get('/jobs', async (req, res) => {
       `SELECT j.id, j.status, j.mode, j.location_text, j.created_at,
               c.phone as customer_phone,
               p.company_name as provider_name,
-              pay.amount
+              pay.amount_total as amount
        FROM jobs j
        LEFT JOIN customers c ON c.id = j.customer_id
        LEFT JOIN providers p ON p.id = j.provider_id
