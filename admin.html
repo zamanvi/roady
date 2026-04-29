@@ -1,323 +1,632 @@
 <!DOCTYPE html><html lang="en"><head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Roady Admin Panel</title>
+<title>Roady Admin</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *{-webkit-tap-highlight-color:transparent;box-sizing:border-box;}
-body{background:#000;color:#fff;font-family:ui-sans-serif,system-ui,sans-serif;margin:0;}
+body{background:#050505;color:#fff;font-family:ui-sans-serif,system-ui,sans-serif;margin:0;min-height:100vh;}
 .hidden{display:none!important;}
-.screen{display:none;flex-direction:column;min-height:100vh;}
-.screen.active{display:flex;}
 .card{background:#0d0d0d;border:1px solid #1c1c1c;border-radius:16px;}
-.inp{width:100%;background:#0a0a0a;border:1px solid #1f2937;border-radius:12px;padding:12px 14px;color:#fff;font-size:14px;outline:none;transition:border .2s;}
+.inp{width:100%;background:#0a0a0a;border:1px solid #1f2937;border-radius:12px;padding:11px 14px;color:#fff;font-size:14px;outline:none;transition:border .2s;}
 .inp:focus{border-color:#22c55e;}
-.btn-green{background:linear-gradient(135deg,#22c55e,#15803d);border-radius:14px;color:#fff;font-weight:800;cursor:pointer;border:none;transition:all .2s;padding:14px;}
-.btn-green:active{transform:scale(.97);}
-.btn-red{background:#450a0a;border:1px solid #7f1d1d;border-radius:10px;color:#f87171;font-size:12px;font-weight:700;cursor:pointer;padding:6px 12px;}
-.btn-approve{background:#052e16;border:1px solid #166534;border-radius:10px;color:#4ade80;font-size:12px;font-weight:700;cursor:pointer;padding:6px 12px;}
-.tab-btn{flex:1;padding:9px 4px;text-align:center;font-size:11px;font-weight:700;border-radius:12px;cursor:pointer;transition:all .2s;background:transparent;border:none;color:#6b7280;}
-.tab-btn.active{background:#0d0d0d;color:#22c55e;border:1px solid #1c1c1c;}
-.badge{font-size:10px;font-weight:800;padding:3px 8px;border-radius:999px;display:inline-block;}
+.btn{border-radius:12px;font-weight:700;cursor:pointer;border:none;padding:10px 18px;font-size:13px;transition:all .2s;}
+.btn-green{background:linear-gradient(135deg,#22c55e,#15803d);color:#fff;}
+.btn-red{background:#450a0a;border:1px solid #7f1d1d;color:#f87171;}
+.btn-blue{background:#0c1a2e;border:1px solid #1e3a5f;color:#93c5fd;}
+.btn-ghost{background:transparent;border:1px solid #374151;color:#6b7280;}
+.badge{font-size:10px;font-weight:800;padding:3px 9px;border-radius:999px;display:inline-block;}
 .badge-green{background:#052e16;color:#4ade80;border:1px solid #166534;}
 .badge-yellow{background:#1c1300;color:#fbbf24;border:1px solid #92400e;}
 .badge-blue{background:#0c1a2e;color:#93c5fd;border:1px solid #1e3a5f;}
 .badge-red{background:#450a0a;color:#f87171;border:1px solid #7f1d1d;}
 .badge-gray{background:#111;color:#6b7280;border:1px solid #374151;}
-.stat{background:#0a0a0a;border:1px solid #1c1c1c;border-radius:14px;padding:14px 10px;text-align:center;}
-::-webkit-scrollbar{width:0;}
-.row{border-bottom:1px solid #111;padding:12px 0;}
-.row:last-child{border-bottom:none;}
-@media(min-width:768px){body{display:flex;justify-content:center;background:#050505;}
-.screen{max-width:900px;width:100%;}}
+.badge-purple{background:#1e0a3c;color:#c4b5fd;border:1px solid #5b21b6;}
+.stat-card{background:#0d0d0d;border:1px solid #1c1c1c;border-radius:14px;padding:16px;text-align:center;}
+.tab-btn{padding:9px 16px;text-align:center;font-size:12px;font-weight:700;border-radius:10px;cursor:pointer;transition:all .2s;background:transparent;border:none;color:#6b7280;white-space:nowrap;}
+.tab-btn.active{background:#111;color:#22c55e;border:1px solid #1c1c1c;}
+.sidebar-btn{width:100%;text-align:left;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;background:transparent;border:none;color:#6b7280;display:flex;align-items:center;gap:10px;transition:all .2s;}
+.sidebar-btn.active,.sidebar-btn:hover{background:#111;color:#fff;}
+.sidebar-btn.active{color:#22c55e;}
+.row-item{border-bottom:1px solid #111;padding:12px 0;}
+.row-item:last-child{border-bottom:none;}
+#admin-map{height:340px;border-radius:14px;overflow:hidden;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:#000;}
+::-webkit-scrollbar-thumb{background:#1f2937;border-radius:2px;}
+input::placeholder,textarea::placeholder{color:#374151;}
+select{color:#fff;background:#0a0a0a;}
+.perm-check{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #111;}
+.perm-check:last-child{border-bottom:none;}
+.toggle{position:relative;width:40px;height:22px;cursor:pointer;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;inset:0;background:#1f2937;border-radius:11px;transition:.3s;}
+.toggle-slider:before{content:'';position:absolute;width:16px;height:16px;left:3px;bottom:3px;background:#6b7280;border-radius:50%;transition:.3s;}
+.toggle input:checked+.toggle-slider{background:#166534;}
+.toggle input:checked+.toggle-slider:before{transform:translateX(18px);background:#4ade80;}
+@media(min-width:1024px){
+  #app{display:flex;min-height:100vh;}
+  #sidebar{width:220px;min-height:100vh;border-right:1px solid #111;flex-shrink:0;}
+  #content{flex:1;overflow-y:auto;}
+}
 </style></head><body>
 
-<!-- LOGIN SCREEN -->
-<div id="screen-login" class="screen active">
-  <div class="flex flex-col items-center justify-center flex-1 px-6">
-    <div class="w-full max-w-sm">
-      <div class="flex items-center gap-2 justify-center mb-8">
-        <svg width="36" height="36" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#22c55e"/><path d="M4 20h2l1-4h14l1 4h2a1 1 0 000-2h-1l-1.5-5H8.5L7 18H6a1 1 0 000 2z" fill="white"/><circle cx="10" cy="21.5" r="2" fill="white"/><circle cx="22" cy="21.5" r="2" fill="white"/></svg>
-        <div><p class="text-xl font-black">Roady Admin</p><p class="text-xs text-red-400 font-bold tracking-widest">ADMIN PANEL</p></div>
-      </div>
-      <div class="card p-6">
-        <p class="text-sm text-gray-400 mb-4 text-center">Enter admin key to access panel</p>
-        <input id="login-key" type="password" class="inp mb-3" placeholder="Admin Key" onkeydown="if(event.key==='Enter')doLogin()"/>
-        <p id="login-err" class="text-red-400 text-xs mb-3 text-center hidden">Invalid key</p>
-        <button onclick="doLogin()" class="btn-green w-full text-base">Access Admin Panel</button>
-      </div>
+<!-- ═══ LOGIN ═══ -->
+<div id="login-screen" class="flex items-center justify-center min-h-screen px-4">
+  <div class="w-full max-w-sm">
+    <div class="flex items-center gap-3 justify-center mb-8">
+      <svg width="40" height="40" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#22c55e"/><path d="M4 20h2l1-4h14l1 4h2a1 1 0 000-2h-1l-1.5-5H8.5L7 18H6a1 1 0 000 2z" fill="white"/><circle cx="10" cy="21.5" r="2" fill="white"/><circle cx="22" cy="21.5" r="2" fill="white"/></svg>
+      <div><p class="text-2xl font-black">Roady</p><p class="text-xs text-red-400 font-bold tracking-widest">ADMIN PANEL</p></div>
     </div>
+    <div class="card p-6 mb-3">
+      <div class="flex bg-gray-900 rounded-xl p-1 mb-4">
+        <button onclick="setLoginMode('admin')" id="lm-admin" class="flex-1 py-2 rounded-lg text-xs font-bold transition" style="background:#111;color:#22c55e;">Admin</button>
+        <button onclick="setLoginMode('manager')" id="lm-manager" class="flex-1 py-2 rounded-lg text-xs font-bold text-gray-500 transition">Manager</button>
+      </div>
+      <div id="login-admin-fields">
+        <input id="login-key" type="password" class="inp mb-3" placeholder="Admin Key" onkeydown="if(event.key==='Enter')doLogin()"/>
+      </div>
+      <div id="login-manager-fields" class="hidden">
+        <input id="mgr-username" type="text" class="inp mb-3" placeholder="Username" onkeydown="if(event.key==='Enter')doLogin()"/>
+        <input id="mgr-password" type="password" class="inp mb-3" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()"/>
+      </div>
+      <p id="login-err" class="text-red-400 text-xs mb-3 text-center hidden">Invalid credentials</p>
+      <button onclick="doLogin()" class="btn btn-green w-full py-3 text-sm">Access Panel</button>
+    </div>
+    <p class="text-center text-xs text-gray-700">Roady Admin &bull; Authorized Access Only</p>
   </div>
 </div>
 
-<!-- MAIN ADMIN SCREEN -->
-<div id="screen-main" class="screen">
-  <!-- Header -->
-  <div class="p-4 flex items-center justify-between border-b border-gray-900">
-    <div class="flex items-center gap-2">
+<!-- ═══ MAIN APP ═══ -->
+<div id="app" class="hidden">
+  <!-- Sidebar -->
+  <div id="sidebar" class="p-4 flex flex-col gap-1">
+    <div class="flex items-center gap-2 mb-6 px-2">
       <svg width="28" height="28" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#22c55e"/><path d="M4 20h2l1-4h14l1 4h2a1 1 0 000-2h-1l-1.5-5H8.5L7 18H6a1 1 0 000 2z" fill="white"/><circle cx="10" cy="21.5" r="2" fill="white"/><circle cx="22" cy="21.5" r="2" fill="white"/></svg>
-      <div><p class="text-base font-black leading-none">Roady Admin</p><p class="text-xs text-red-400 font-bold">ADMIN PANEL</p></div>
+      <div><p class="font-black text-sm leading-none">Roady Admin</p><p id="role-badge" class="text-xs text-green-400 font-bold">ADMIN</p></div>
     </div>
-    <div class="flex gap-2 items-center">
-      <a href="roady.html" class="text-xs text-gray-500 border border-gray-800 px-2.5 py-1.5 rounded-full">Customer</a>
-      <a href="provider.html" class="text-xs text-gray-500 border border-gray-800 px-2.5 py-1.5 rounded-full">Provider</a>
-      <button onclick="doLogout()" class="text-xs text-red-500 border border-red-900 px-2.5 py-1.5 rounded-full">Logout</button>
-    </div>
-  </div>
-
-  <!-- Tabs -->
-  <div class="flex bg-gray-950 border-b border-gray-900 px-3 py-2 gap-1">
-    <button class="tab-btn active" id="tab-overview" onclick="showTab('overview')">Overview</button>
-    <button class="tab-btn" id="tab-orders" onclick="showTab('orders')">Orders</button>
-    <button class="tab-btn" id="tab-providers" onclick="showTab('providers')">Providers</button>
-    <button class="tab-btn" id="tab-customers" onclick="showTab('customers')">Customers</button>
-    <button class="tab-btn" id="tab-affiliates" onclick="showTab('affiliates')">Affiliates</button>
-  </div>
-
-  <div class="flex-1 overflow-y-auto px-4 py-4">
-
-    <!-- OVERVIEW -->
-    <div id="panel-overview">
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-        <div class="stat"><p class="text-2xl font-black text-green-400" id="stat-revenue">--</p><p class="text-xs text-gray-600 mt-1">Revenue</p></div>
-        <div class="stat"><p class="text-2xl font-black text-white" id="stat-jobs">--</p><p class="text-xs text-gray-600 mt-1">Total Jobs</p></div>
-        <div class="stat"><p class="text-2xl font-black text-blue-400" id="stat-providers">--</p><p class="text-xs text-gray-600 mt-1">Providers</p></div>
-        <div class="stat"><p class="text-2xl font-black text-yellow-400" id="stat-customers">--</p><p class="text-xs text-gray-600 mt-1">Customers</p></div>
+    <button class="sidebar-btn active" id="nav-dashboard" onclick="showPanel('dashboard')">📊 Dashboard</button>
+    <button class="sidebar-btn" id="nav-orders" onclick="showPanel('orders')">📋 Orders</button>
+    <button class="sidebar-btn" id="nav-providers" onclick="showPanel('providers')">🚛 Providers</button>
+    <button class="sidebar-btn" id="nav-customers" onclick="showPanel('customers')">👥 Customers</button>
+    <button class="sidebar-btn" id="nav-payments" onclick="showPanel('payments')">💳 Payments</button>
+    <button class="sidebar-btn" id="nav-affiliates" onclick="showPanel('affiliates')">🔗 Affiliates</button>
+    <button class="sidebar-btn admin-only" id="nav-managers" onclick="showPanel('managers')">🔐 Managers</button>
+    <div class="mt-auto pt-4 border-t border-gray-900">
+      <p id="logged-as" class="text-xs text-gray-600 px-2 mb-2"></p>
+      <div class="flex gap-2 px-2">
+        <a href="roady.html" class="text-xs text-gray-600 hover:text-gray-400">Customer</a>
+        <span class="text-gray-700">·</span>
+        <a href="provider.html" class="text-xs text-gray-600 hover:text-gray-400">Provider</a>
+        <span class="text-gray-700">·</span>
+        <button onclick="doLogout()" class="text-xs text-red-500">Logout</button>
       </div>
-      <div class="card p-4 mb-3">
-        <p class="text-xs text-gray-500 uppercase tracking-widest font-semibold mb-3">Pending Approvals</p>
-        <div class="flex items-center justify-between">
-          <span class="text-sm text-gray-300">Providers awaiting approval</span>
-          <span class="badge badge-yellow" id="stat-pending">--</span>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div id="content" class="p-4 md:p-6">
+
+    <!-- DASHBOARD -->
+    <div id="panel-dashboard">
+      <div class="flex items-center justify-between mb-4">
+        <h1 class="text-xl font-black">Dashboard</h1>
+        <button onclick="loadDashboard()" class="btn btn-ghost text-xs py-2 px-3">↻ Refresh</button>
+      </div>
+      <!-- Live stats -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+        <div class="stat-card"><p class="text-2xl font-black text-green-400" id="d-revenue-today">--</p><p class="text-xs text-gray-500 mt-1">Revenue Today</p></div>
+        <div class="stat-card"><p class="text-2xl font-black text-white" id="d-jobs-today">--</p><p class="text-xs text-gray-500 mt-1">Orders Today</p></div>
+        <div class="stat-card"><p class="text-2xl font-black text-blue-400" id="d-online">--</p><p class="text-xs text-gray-500 mt-1">Providers Online</p></div>
+        <div class="stat-card"><p class="text-2xl font-black text-yellow-400" id="d-disputes">--</p><p class="text-xs text-gray-500 mt-1">Open Disputes</p></div>
+      </div>
+      <!-- Totals row -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+        <div class="stat-card"><p class="text-xl font-black text-white" id="d-revenue-total">--</p><p class="text-xs text-gray-500 mt-1">Total Revenue</p></div>
+        <div class="stat-card"><p class="text-xl font-black text-white" id="d-jobs-total">--</p><p class="text-xs text-gray-500 mt-1">Total Orders</p></div>
+        <div class="stat-card"><p class="text-xl font-black text-white" id="d-jobs-week">--</p><p class="text-xs text-gray-500 mt-1">Orders This Week</p></div>
+        <div class="stat-card"><p class="text-xl font-black text-white" id="d-customers-total">--</p><p class="text-xs text-gray-500 mt-1">Total Customers</p></div>
+      </div>
+      <!-- Map + Activity -->
+      <div class="grid md:grid-cols-2 gap-4 mb-4">
+        <div class="card p-4">
+          <p class="text-xs text-gray-500 uppercase tracking-widest font-semibold mb-3">Active Jobs Map</p>
+          <div id="admin-map"></div>
+        </div>
+        <div class="card p-4">
+          <p class="text-xs text-gray-500 uppercase tracking-widest font-semibold mb-3">Recent Activity</p>
+          <div id="activity-feed" class="overflow-y-auto" style="max-height:340px;"></div>
         </div>
       </div>
-      <button onclick="loadAll()" class="w-full py-3 text-sm text-gray-500 border border-gray-800 rounded-2xl">Refresh Data</button>
+      <!-- Revenue chart -->
+      <div class="card p-4 mb-4">
+        <p class="text-xs text-gray-500 uppercase tracking-widest font-semibold mb-3">Revenue — Last 7 Days</p>
+        <canvas id="revenue-chart" height="100"></canvas>
+      </div>
+      <!-- Order status breakdown -->
+      <div class="card p-4">
+        <p class="text-xs text-gray-500 uppercase tracking-widest font-semibold mb-3">Orders by Status</p>
+        <div id="job-status-breakdown" class="grid grid-cols-3 md:grid-cols-6 gap-2"></div>
+      </div>
     </div>
 
     <!-- ORDERS -->
     <div id="panel-orders" class="hidden">
-      <div class="flex items-center justify-between mb-3">
-        <p class="text-sm font-black">All Orders</p>
-        <button onclick="loadJobs()" class="text-xs text-gray-500 border border-gray-800 px-3 py-1.5 rounded-full">Refresh</button>
+      <div class="flex items-center justify-between mb-4">
+        <h1 class="text-xl font-black">Orders</h1>
+        <button onclick="loadJobs()" class="btn btn-ghost text-xs py-2 px-3">↻ Refresh</button>
       </div>
-      <div id="jobs-list"><p class="text-gray-600 text-sm text-center py-8">Loading...</p></div>
+      <div id="jobs-list"></div>
     </div>
 
     <!-- PROVIDERS -->
     <div id="panel-providers" class="hidden">
-      <div class="flex items-center justify-between mb-3">
-        <p class="text-sm font-black">All Providers</p>
-        <button onclick="loadProviders()" class="text-xs text-gray-500 border border-gray-800 px-3 py-1.5 rounded-full">Refresh</button>
+      <div class="flex items-center justify-between mb-4">
+        <h1 class="text-xl font-black">Providers</h1>
+        <button onclick="loadProviders()" class="btn btn-ghost text-xs py-2 px-3">↻ Refresh</button>
       </div>
-      <div id="providers-list"><p class="text-gray-600 text-sm text-center py-8">Loading...</p></div>
+      <div id="providers-list"></div>
     </div>
 
     <!-- CUSTOMERS -->
     <div id="panel-customers" class="hidden">
-      <div class="flex items-center justify-between mb-3">
-        <p class="text-sm font-black">All Customers</p>
-        <button onclick="loadCustomers()" class="text-xs text-gray-500 border border-gray-800 px-3 py-1.5 rounded-full">Refresh</button>
+      <div class="flex items-center justify-between mb-4">
+        <h1 class="text-xl font-black">Customers</h1>
+        <button onclick="loadCustomers()" class="btn btn-ghost text-xs py-2 px-3">↻ Refresh</button>
       </div>
-      <div id="customers-list"><p class="text-gray-600 text-sm text-center py-8">Loading...</p></div>
+      <div id="customers-list"></div>
+    </div>
+
+    <!-- PAYMENTS -->
+    <div id="panel-payments" class="hidden">
+      <div class="flex items-center justify-between mb-4">
+        <h1 class="text-xl font-black">Payments</h1>
+        <button onclick="loadPayments()" class="btn btn-ghost text-xs py-2 px-3">↻ Refresh</button>
+      </div>
+      <div id="payments-list"></div>
     </div>
 
     <!-- AFFILIATES -->
     <div id="panel-affiliates" class="hidden">
-      <div class="flex items-center justify-between mb-3">
-        <p class="text-sm font-black">Affiliate Referrals</p>
-        <button onclick="loadAffiliates()" class="text-xs text-gray-500 border border-gray-800 px-3 py-1.5 rounded-full">Refresh</button>
+      <div class="flex items-center justify-between mb-4">
+        <h1 class="text-xl font-black">Affiliates</h1>
+        <button onclick="loadAffiliates()" class="btn btn-ghost text-xs py-2 px-3">↻ Refresh</button>
       </div>
-      <div id="affiliates-list"><p class="text-gray-600 text-sm text-center py-8">Loading...</p></div>
+      <div id="affiliates-list"></div>
+    </div>
+
+    <!-- MANAGERS (admin only) -->
+    <div id="panel-managers" class="hidden">
+      <div class="flex items-center justify-between mb-4">
+        <h1 class="text-xl font-black">Managers</h1>
+        <button onclick="showCreateManager()" class="btn btn-green text-xs py-2 px-4">+ New Manager</button>
+      </div>
+      <!-- Create form -->
+      <div id="create-manager-form" class="card p-4 mb-4 hidden">
+        <p class="text-sm font-bold mb-3">Create Manager</p>
+        <div class="grid md:grid-cols-3 gap-3 mb-3">
+          <input id="mgr-name" type="text" class="inp" placeholder="Full Name"/>
+          <input id="mgr-uname" type="text" class="inp" placeholder="Username"/>
+          <input id="mgr-pass" type="password" class="inp" placeholder="Password (min 8)"/>
+        </div>
+        <p class="text-xs text-gray-500 mb-2 font-semibold">Permissions:</p>
+        <div class="card p-3 mb-3">
+          <div class="perm-check"><label class="toggle"><input type="checkbox" id="p-orders"/><span class="toggle-slider"></span></label><span class="text-sm">Orders — view &amp; manage jobs</span></div>
+          <div class="perm-check"><label class="toggle"><input type="checkbox" id="p-providers"/><span class="toggle-slider"></span></label><span class="text-sm">Providers — activate/deactivate</span></div>
+          <div class="perm-check"><label class="toggle"><input type="checkbox" id="p-customers"/><span class="toggle-slider"></span></label><span class="text-sm">Customers — view customer data</span></div>
+          <div class="perm-check"><label class="toggle"><input type="checkbox" id="p-payments"/><span class="toggle-slider"></span></label><span class="text-sm">Payments — view financial data</span></div>
+          <div class="perm-check"><label class="toggle"><input type="checkbox" id="p-affiliates"/><span class="toggle-slider"></span></label><span class="text-sm">Affiliates — manage referrals</span></div>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="createManager()" class="btn btn-green flex-1">Create Manager</button>
+          <button onclick="document.getElementById('create-manager-form').classList.add('hidden')" class="btn btn-ghost">Cancel</button>
+        </div>
+        <p id="mgr-create-err" class="text-red-400 text-xs mt-2 hidden"></p>
+      </div>
+      <div id="managers-list"></div>
     </div>
 
   </div>
 </div>
 
 <script>
-var API = location.hostname === 'localhost'
-  ? 'http://localhost:3001/api'
-  : 'https://roady-production.up.railway.app/api';
+var API = location.hostname==='localhost'?'http://localhost:3001/api':'https://roady-production.up.railway.app/api';
+var _adminKey='', _mgrToken='', _loginMode='admin', _role='', _permissions={}, _revenueChart=null, _adminMap=null;
 
-var _adminKey = sessionStorage.getItem('roady_admin_key') || '';
-
-function adminFetch(path) {
-  return fetch(API + path, { headers: { 'x-admin-key': _adminKey } }).then(function(r) { return r.json(); });
+// ── Login ────────────────────────────────────────────────────────────────────
+function setLoginMode(m){
+  _loginMode=m;
+  document.getElementById('login-admin-fields').classList.toggle('hidden',m!=='admin');
+  document.getElementById('login-manager-fields').classList.toggle('hidden',m!=='manager');
+  document.getElementById('lm-admin').style.cssText=m==='admin'?'background:#111;color:#22c55e;border-radius:8px;':'';
+  document.getElementById('lm-manager').style.cssText=m==='manager'?'background:#111;color:#22c55e;border-radius:8px;':'';
 }
 
-function doLogin() {
-  var key = document.getElementById('login-key').value.trim();
-  if (!key) return;
-  _adminKey = key;
-  adminFetch('/admin/stats').then(function(data) {
-    if (data.error) {
-      document.getElementById('login-err').classList.remove('hidden');
-      return;
-    }
-    sessionStorage.setItem('roady_admin_key', key);
-    document.getElementById('screen-login').classList.remove('active');
-    document.getElementById('screen-main').classList.add('active');
-    renderStats(data);
-    document.getElementById('login-err').classList.add('hidden');
-  }).catch(function() {
-    document.getElementById('login-err').classList.remove('hidden');
+function authHeaders(){
+  if(_role==='admin') return {'x-admin-key':_adminKey,'Content-Type':'application/json'};
+  return {'Authorization':'Bearer '+_mgrToken,'Content-Type':'application/json'};
+}
+
+function adminFetch(path,opts){
+  return fetch(API+path,Object.assign({headers:authHeaders()},opts)).then(function(r){return r.json();});
+}
+
+function doLogin(){
+  document.getElementById('login-err').classList.add('hidden');
+  if(_loginMode==='admin'){
+    var key=document.getElementById('login-key').value.trim();
+    if(!key)return;
+    _adminKey=key;
+    fetch(API+'/admin/stats',{headers:{'x-admin-key':key}}).then(function(r){return r.json();}).then(function(data){
+      if(data.error){document.getElementById('login-err').classList.remove('hidden');_adminKey='';return;}
+      sessionStorage.setItem('roady_admin_key',key);
+      _role='admin';
+      enterApp(data);
+    }).catch(function(){document.getElementById('login-err').classList.remove('hidden');});
+  } else {
+    var u=document.getElementById('mgr-username').value.trim();
+    var p=document.getElementById('mgr-password').value;
+    fetch(API+'/admin/manager-login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})})
+      .then(function(r){return r.json();}).then(function(data){
+        if(data.error){document.getElementById('login-err').classList.remove('hidden');return;}
+        _mgrToken=data.token; _role='manager'; _permissions=data.manager.permissions;
+        sessionStorage.setItem('roady_mgr_token',data.token);
+        document.getElementById('logged-as').textContent=data.manager.name+' (Manager)';
+        document.getElementById('role-badge').textContent='MANAGER';
+        document.querySelector('.admin-only').classList.add('hidden');
+        enterApp(null);
+        applyPermissions();
+      }).catch(function(){document.getElementById('login-err').classList.remove('hidden');});
+  }
+}
+
+function enterApp(stats){
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  if(_role==='admin') document.getElementById('logged-as').textContent='Admin';
+  loadDashboard();
+  if(stats) renderStats(stats);
+}
+
+function applyPermissions(){
+  var panels=['orders','providers','customers','payments','affiliates'];
+  panels.forEach(function(p){
+    var btn=document.getElementById('nav-'+p);
+    if(btn&&!_permissions[p]) btn.style.opacity='0.3', btn.style.pointerEvents='none';
   });
 }
 
-function doLogout() {
-  sessionStorage.removeItem('roady_admin_key');
-  _adminKey = '';
-  document.getElementById('screen-main').classList.remove('active');
-  document.getElementById('screen-login').classList.add('active');
-  document.getElementById('login-key').value = '';
+function doLogout(){
+  sessionStorage.clear(); _adminKey=''; _mgrToken=''; _role='';
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('login-screen').classList.remove('hidden');
 }
 
-function showTab(t) {
-  ['overview','orders','providers','customers','affiliates'].forEach(function(x) {
-    document.getElementById('panel-'+x).classList.toggle('hidden', x !== t);
-    document.getElementById('tab-'+x).classList.toggle('active', x === t);
+// ── Panel nav ────────────────────────────────────────────────────────────────
+var _panels=['dashboard','orders','providers','customers','payments','affiliates','managers'];
+function showPanel(p){
+  _panels.forEach(function(x){
+    document.getElementById('panel-'+x).classList.toggle('hidden',x!==p);
+    var btn=document.getElementById('nav-'+x);
+    if(btn) btn.classList.toggle('active',x===p);
   });
-  if (t === 'orders') loadJobs();
-  else if (t === 'providers') loadProviders();
-  else if (t === 'customers') loadCustomers();
-  else if (t === 'affiliates') loadAffiliates();
+  if(p==='orders') loadJobs();
+  else if(p==='providers') loadProviders();
+  else if(p==='customers') loadCustomers();
+  else if(p==='payments') loadPayments();
+  else if(p==='affiliates') loadAffiliates();
+  else if(p==='managers') loadManagers();
 }
 
-function renderStats(data) {
-  var totalJobs = Object.values(data.jobs || {}).reduce(function(a,b){return a+b;},0);
-  document.getElementById('stat-revenue').textContent = '$' + (data.revenue || 0).toFixed(0);
-  document.getElementById('stat-jobs').textContent = totalJobs;
-  document.getElementById('stat-providers').textContent = data.providers || 0;
-  document.getElementById('stat-customers').textContent = data.customers || 0;
-  document.getElementById('stat-pending').textContent = data.pendingProviders || 0;
+// ── Dashboard ────────────────────────────────────────────────────────────────
+function loadDashboard(){
+  adminFetch('/admin/stats').then(renderStats).catch(function(){});
+  adminFetch('/admin/activity').then(renderActivity).catch(function(){});
+  adminFetch('/admin/revenue/chart').then(renderChart).catch(function(){});
+  adminFetch('/admin/map').then(renderMap).catch(function(){});
 }
 
-function loadAll() {
-  adminFetch('/admin/stats').then(renderStats);
+function renderStats(data){
+  if(!data||data.error)return;
+  set('d-revenue-today','$'+(data.revenueToday||0).toFixed(0));
+  set('d-jobs-today',data.todayJobs||0);
+  set('d-online',data.onlineProviders||0);
+  set('d-disputes',data.disputes||0);
+  set('d-revenue-total','$'+(data.revenue||0).toFixed(0));
+  set('d-jobs-total',data.totalJobs||0);
+  set('d-jobs-week',data.weekJobs||0);
+  set('d-customers-total',data.customers||0);
+  var statusColors={pending:'badge-yellow',bidding:'badge-blue',assigned:'badge-blue',en_route:'badge-green',completed:'badge-green',cancelled:'badge-gray',disputed:'badge-red'};
+  var html='';
+  Object.entries(data.jobs||{}).forEach(function(e){
+    html+='<div class="stat-card"><p class="text-lg font-black">'+e[1]+'</p><p class="text-xs text-gray-500 mt-1">'+e[0]+'</p></div>';
+  });
+  set('job-status-breakdown',null,html);
 }
 
-function fmt(d) {
-  if (!d) return '--';
-  return new Date(d).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+function renderActivity(rows){
+  if(!Array.isArray(rows))return;
+  if(!rows.length){set('activity-feed',null,'<p class="text-gray-600 text-xs text-center py-8">No activity yet</p>');return;}
+  var html=rows.map(function(j){
+    var dot=j.status==='completed'?'bg-green-500':j.status==='cancelled'?'bg-gray-600':j.status==='disputed'?'bg-red-500':'bg-blue-500';
+    return '<div class="flex gap-3 py-2 border-b border-gray-900 last:border-0">'
+      +'<div class="w-2 h-2 rounded-full mt-1.5 flex-shrink-0 '+dot+'"></div>'
+      +'<div><p class="text-xs text-white">Job <span class="text-gray-500">#'+j.id.slice(-6)+'</span> '
+      +(j.provider_name?'· '+j.provider_name:'')+'</p>'
+      +'<p class="text-xs text-gray-600">'+j.customer_phone+' · '+(j.agreed_price?'$'+j.agreed_price:'--')
+      +' · <span class="badge '+(j.status==='completed'?'badge-green':j.status==='disputed'?'badge-red':'badge-blue')+'">'+j.status+'</span></p>'
+      +'<p class="text-xs text-gray-700">'+fmt(j.created_at)+'</p>'
+      +'</div></div>';
+  }).join('');
+  set('activity-feed',null,html);
 }
 
-function statusBadge(s) {
-  var map = {open:'badge-yellow',accepted:'badge-blue',complete:'badge-green',cancelled:'badge-red'};
-  return '<span class="badge '+(map[s]||'badge-gray')+'">'+s+'</span>';
+function renderChart(rows){
+  var ctx=document.getElementById('revenue-chart').getContext('2d');
+  var labels=[], revenue=[], fees=[];
+  if(Array.isArray(rows)) rows.forEach(function(r){labels.push(r.day);revenue.push(parseFloat(r.revenue));fees.push(parseFloat(r.fees));});
+  if(!labels.length){for(var i=6;i>=0;i--){var d=new Date(Date.now()-i*86400000);labels.push(d.toISOString().slice(0,10));revenue.push(0);fees.push(0);}}
+  if(_revenueChart) _revenueChart.destroy();
+  _revenueChart=new Chart(ctx,{type:'bar',data:{labels:labels,datasets:[
+    {label:'Revenue',data:revenue,backgroundColor:'rgba(34,197,94,.7)',borderRadius:6},
+    {label:'Platform Fees',data:fees,backgroundColor:'rgba(59,130,246,.5)',borderRadius:6}
+  ]},options:{responsive:true,plugins:{legend:{labels:{color:'#9ca3af',font:{size:11}}}},scales:{x:{ticks:{color:'#6b7280',font:{size:10}},grid:{color:'#111'}},y:{ticks:{color:'#6b7280',font:{size:10},callback:function(v){return'$'+v;}},grid:{color:'#111'}}}}});
 }
 
-function loadJobs() {
-  document.getElementById('jobs-list').innerHTML = '<p class="text-gray-600 text-sm text-center py-8">Loading...</p>';
-  adminFetch('/admin/jobs').then(function(rows) {
-    if (!Array.isArray(rows)) { document.getElementById('jobs-list').innerHTML = '<p class="text-red-400 text-sm text-center py-4">Error loading jobs</p>'; return; }
-    if (!rows.length) { document.getElementById('jobs-list').innerHTML = '<p class="text-gray-600 text-sm text-center py-8">No orders yet</p>'; return; }
-    var html = rows.map(function(j) {
+function renderMap(pins){
+  if(!_adminMap){
+    _adminMap=L.map('admin-map',{zoomControl:true,attributionControl:false}).setView([37.5,-95],4);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(_adminMap);
+  }
+  if(!Array.isArray(pins)||!pins.length) return;
+  var bounds=[];
+  pins.forEach(function(p){
+    if(!p.location_lat||!p.location_lng)return;
+    var color=p.status==='en_route'?'#22c55e':p.status==='assigned'?'#3b82f6':'#f59e0b';
+    var icon=L.divIcon({html:'<div style="width:12px;height:12px;border-radius:50%;background:'+color+';border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.6)"></div>',iconSize:[12,12],iconAnchor:[6,6],className:''});
+    L.marker([parseFloat(p.location_lat),parseFloat(p.location_lng)],{icon:icon})
+      .addTo(_adminMap)
+      .bindPopup('<b>'+(p.provider_name||'Unassigned')+'</b><br>'+p.customer_phone+'<br>'+p.status);
+    bounds.push([parseFloat(p.location_lat),parseFloat(p.location_lng)]);
+  });
+  if(bounds.length) _adminMap.fitBounds(bounds,{padding:[30,30]});
+}
+
+// ── Orders ───────────────────────────────────────────────────────────────────
+function loadJobs(){
+  set('jobs-list',null,'<p class="text-gray-600 text-sm text-center py-8">Loading...</p>');
+  adminFetch('/admin/jobs').then(function(rows){
+    if(!Array.isArray(rows)){set('jobs-list',null,'<p class="text-red-400 text-sm py-4">'+((rows&&rows.error)||'Error')+'</p>');return;}
+    if(!rows.length){set('jobs-list',null,'<p class="text-gray-600 text-sm text-center py-8">No orders yet</p>');return;}
+    var statBadge={pending:'badge-yellow',bidding:'badge-blue',assigned:'badge-blue',en_route:'badge-green',in_progress:'badge-green',completed:'badge-green',cancelled:'badge-gray',disputed:'badge-red'};
+    var html=rows.map(function(j){
       return '<div class="card p-3 mb-2">'
-        + '<div class="flex items-center justify-between mb-1">'
-        + '<span class="text-xs text-gray-500">#'+j.id+' &bull; '+fmt(j.created_at)+'</span>'
-        + statusBadge(j.status)
-        + '</div>'
-        + '<div class="text-sm font-semibold text-white mb-1">'+(j.location_text||'Location not set')+'</div>'
-        + '<div class="flex items-center justify-between text-xs text-gray-500">'
-        + '<span>📱 '+(j.customer_phone||'--')+'</span>'
-        + '<span>🚛 '+(j.provider_name||'Unassigned')+'</span>'
-        + '<span class="text-green-400 font-bold">'+(j.amount?'$'+parseFloat(j.amount).toFixed(2):'--')+'</span>'
-        + '</div>'
-        + '</div>';
+        +'<div class="flex items-start justify-between mb-1">'
+        +'<div><span class="text-xs text-gray-600">#'+j.id.slice(-8)+'</span>'
+        +' <span class="badge '+(j.mode==='urgent'?'badge-red':'badge-blue')+'">'+j.mode+'</span></div>'
+        +'<span class="badge '+(statBadge[j.status]||'badge-gray')+'">'+j.status+'</span>'
+        +'</div>'
+        +'<p class="text-sm font-semibold text-white mb-1">'+(j.location_text||'Location not set')+'</p>'
+        +'<div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">'
+        +'<span>📱 '+(j.customer_phone||'--')+'</span>'
+        +'<span>🚛 '+(j.provider_name||'Unassigned')+'</span>'
+        +(j.amount?'<span class="text-green-400 font-bold">$'+parseFloat(j.amount).toFixed(2)+'</span>':'')
+        +'<span>'+fmt(j.created_at)+'</span>'
+        +'</div></div>';
     }).join('');
-    document.getElementById('jobs-list').innerHTML = html;
+    set('jobs-list',null,html);
   });
 }
 
-function loadProviders() {
-  document.getElementById('providers-list').innerHTML = '<p class="text-gray-600 text-sm text-center py-8">Loading...</p>';
-  adminFetch('/admin/providers').then(function(rows) {
-    if (!Array.isArray(rows)) { document.getElementById('providers-list').innerHTML = '<p class="text-red-400 text-sm text-center py-4">Error</p>'; return; }
-    if (!rows.length) { document.getElementById('providers-list').innerHTML = '<p class="text-gray-600 text-sm text-center py-8">No providers yet</p>'; return; }
-    var html = rows.map(function(p) {
-      var approved = p.is_approved;
+// ── Providers ────────────────────────────────────────────────────────────────
+function loadProviders(){
+  set('providers-list',null,'<p class="text-gray-600 text-sm text-center py-8">Loading...</p>');
+  adminFetch('/admin/providers').then(function(rows){
+    if(!Array.isArray(rows)){set('providers-list',null,'<p class="text-red-400 text-sm py-4">'+((rows&&rows.error)||'Error')+'</p>');return;}
+    if(!rows.length){set('providers-list',null,'<p class="text-gray-600 text-sm text-center py-8">No providers yet</p>');return;}
+    var html=rows.map(function(p){
+      return '<div class="card p-4 mb-2">'
+        +'<div class="flex items-start justify-between mb-1">'
+        +'<div>'
+        +'<p class="font-bold text-white">'+p.company_name+'</p>'
+        +'<p class="text-xs text-gray-500">'+p.owner_name+' · '+p.phone+'</p>'
+        +'</div>'
+        +'<div class="flex gap-1 flex-col items-end">'
+        +(p.is_online?'<span class="badge badge-green">Online</span>':'<span class="badge badge-gray">Offline</span>')
+        +(p.is_active?'<span class="badge badge-blue">Active</span>':'<span class="badge badge-red">Inactive</span>')
+        +'</div></div>'
+        +'<div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 mb-3">'
+        +'<span>📍 '+p.city+', '+p.state+'</span>'
+        +'<span>DOT: '+p.dot_number+'</span>'
+        +'<span>Jobs: '+p.job_count+'</span>'
+        +'<span>Rating: '+(p.rating||0)+'⭐</span>'
+        +'<span>Joined: '+fmt(p.created_at)+'</span>'
+        +'</div>'
+        +'<div class="flex gap-2">'
+        +(p.is_active
+          ?'<button onclick="toggleProvider(\''+p.id+'\',false,this)" class="btn btn-red text-xs py-1.5">Deactivate</button>'
+          :'<button onclick="toggleProvider(\''+p.id+'\',true,this)" class="btn btn-green text-xs py-1.5">Activate</button>')
+        +'</div>'
+        +'</div>';
+    }).join('');
+    set('providers-list',null,html);
+  });
+}
+
+function toggleProvider(id, activate, btn){
+  if(!activate&&!confirm('Deactivate this provider?'))return;
+  btn.textContent='...'; btn.disabled=true;
+  fetch(API+'/admin/providers/'+id+'/'+(activate?'activate':'deactivate'),{method:'PATCH',headers:authHeaders()})
+    .then(function(){loadProviders();});
+}
+
+// ── Customers ────────────────────────────────────────────────────────────────
+function loadCustomers(){
+  set('customers-list',null,'<p class="text-gray-600 text-sm text-center py-8">Loading...</p>');
+  adminFetch('/admin/customers').then(function(rows){
+    if(!Array.isArray(rows)){set('customers-list',null,'<p class="text-red-400 text-sm py-4">Error</p>');return;}
+    if(!rows.length){set('customers-list',null,'<p class="text-gray-600 text-sm text-center py-8">No customers yet</p>');return;}
+    var html='<div class="card px-4">'+rows.map(function(c){
+      return '<div class="row-item flex items-center justify-between">'
+        +'<div>'
+        +'<p class="text-sm font-semibold text-white">'+(c.name||'No name')+'</p>'
+        +'<p class="text-xs text-gray-500">'+(c.phone||'--')+' · Joined '+fmt(c.created_at)+'</p>'
+        +'</div>'
+        +'<div class="text-right">'
+        +'<p class="text-sm font-bold text-white">'+c.job_count+' jobs</p>'
+        +'<p class="text-xs text-gray-600">'+c.week_jobs+' this week</p>'
+        +'</div>'
+        +'</div>';
+    }).join('')+'</div>';
+    set('customers-list',null,html);
+  });
+}
+
+// ── Payments ─────────────────────────────────────────────────────────────────
+function loadPayments(){
+  set('payments-list',null,'<p class="text-gray-600 text-sm text-center py-8">Loading...</p>');
+  adminFetch('/admin/payments').then(function(rows){
+    if(!Array.isArray(rows)){set('payments-list',null,'<p class="text-red-400 text-sm py-4">Error</p>');return;}
+    if(!rows.length){set('payments-list',null,'<p class="text-gray-600 text-sm text-center py-8">No payments yet</p>');return;}
+    var statBadge={held:'badge-yellow',captured:'badge-blue',released:'badge-green',refunded:'badge-gray',disputed:'badge-red'};
+    var html=rows.map(function(p){
+      return '<div class="card p-3 mb-2 flex items-center justify-between">'
+        +'<div>'
+        +'<div class="flex items-center gap-2 mb-1">'
+        +'<span class="text-sm font-bold text-white">$'+parseFloat(p.amount_total||0).toFixed(2)+'</span>'
+        +'<span class="badge '+(statBadge[p.status]||'badge-gray')+'">'+p.status+'</span>'
+        +'</div>'
+        +'<p class="text-xs text-gray-500">'+(p.customer_phone||'--')+' → '+(p.provider_name||'--')+'</p>'
+        +'<p class="text-xs text-gray-600">Fee: $'+parseFloat(p.platform_fee||0).toFixed(2)+' · Provider: $'+parseFloat(p.provider_amount||0).toFixed(2)+'</p>'
+        +'<p class="text-xs text-gray-700">'+fmt(p.created_at)+'</p>'
+        +'</div>'
+        +'</div>';
+    }).join('');
+    set('payments-list',null,html);
+  });
+}
+
+// ── Affiliates ───────────────────────────────────────────────────────────────
+function loadAffiliates(){
+  set('affiliates-list',null,'<p class="text-gray-600 text-sm text-center py-8">Loading...</p>');
+  adminFetch('/admin/affiliates').then(function(rows){
+    if(!Array.isArray(rows)){set('affiliates-list',null,'<p class="text-red-400 text-sm py-4">Error</p>');return;}
+    if(!rows.length){set('affiliates-list',null,'<p class="text-gray-600 text-sm text-center py-8">No referrals yet</p>');return;}
+    var html=rows.map(function(a){
       return '<div class="card p-3 mb-2">'
-        + '<div class="flex items-center justify-between mb-1">'
-        + '<span class="font-bold text-sm text-white">'+(p.company_name||'--')+'</span>'
-        + (approved ? '<span class="badge badge-green">Approved</span>' : '<span class="badge badge-yellow">Pending</span>')
-        + '</div>'
-        + '<div class="text-xs text-gray-500 mb-2">'+p.owner_name+' &bull; '+(p.phone||'--')+' &bull; '+(p.city||'')+', '+(p.state||'')+'</div>'
-        + '<div class="text-xs text-gray-600 mb-2">Jobs: '+(p.job_count||0)+' &bull; Joined: '+fmt(p.created_at)+'</div>'
-        + '<div class="flex gap-2">'
-        + (approved
-            ? '<button onclick="deactivateProvider(\''+p.id+'\',this)" class="btn-red">Deactivate</button>'
-            : '<button onclick="activateProvider(\''+p.id+'\',this)" class="btn-approve">Activate</button>')
-        + '</div>'
-        + '</div>';
+        +'<div class="flex items-center justify-between mb-1">'
+        +'<span class="font-semibold text-sm text-white">'+(a.referrer_name||'#'+String(a.referrer_id).slice(-6))+'</span>'
+        +'<span class="badge '+(a.referrer_type==='provider'?'badge-blue':'badge-green')+'">'+a.referrer_type+'</span>'
+        +'</div>'
+        +'<p class="text-xs text-gray-500">Code: '+a.code+' · Bonus: $'+a.flat_bonus+(a.revenue_pct?' + '+a.revenue_pct+'%':'')+'</p>'
+        +'<p class="text-xs text-gray-600 mt-1">'+fmt(a.created_at)+' · '+(a.paid_at?'<span style="color:#4ade80">Paid</span>':'<span style="color:#fbbf24">Unpaid</span>')+'</p>'
+        +'</div>';
     }).join('');
-    document.getElementById('providers-list').innerHTML = html;
+    set('affiliates-list',null,html);
   });
 }
 
-function activateProvider(id, btn) {
-  btn.textContent = '...';
-  fetch(API + '/admin/providers/' + id + '/activate', {
-    method: 'PATCH', headers: { 'x-admin-key': _adminKey }
-  }).then(function() { loadProviders(); });
+// ── Managers ─────────────────────────────────────────────────────────────────
+function showCreateManager(){document.getElementById('create-manager-form').classList.toggle('hidden');}
+
+function createManager(){
+  var name=document.getElementById('mgr-name').value.trim();
+  var username=document.getElementById('mgr-uname').value.trim();
+  var password=document.getElementById('mgr-pass').value;
+  var perms={
+    orders:document.getElementById('p-orders').checked,
+    providers:document.getElementById('p-providers').checked,
+    customers:document.getElementById('p-customers').checked,
+    payments:document.getElementById('p-payments').checked,
+    affiliates:document.getElementById('p-affiliates').checked
+  };
+  var errEl=document.getElementById('mgr-create-err');
+  errEl.classList.add('hidden');
+  if(!name||!username||!password){errEl.textContent='All fields required';errEl.classList.remove('hidden');return;}
+  fetch(API+'/admin/managers',{method:'POST',headers:authHeaders(),body:JSON.stringify({name,username,password,permissions:perms})})
+    .then(function(r){return r.json();}).then(function(data){
+      if(data.error){errEl.textContent=data.error;errEl.classList.remove('hidden');return;}
+      document.getElementById('create-manager-form').classList.add('hidden');
+      document.getElementById('mgr-name').value='';
+      document.getElementById('mgr-uname').value='';
+      document.getElementById('mgr-pass').value='';
+      loadManagers();
+    });
 }
 
-function deactivateProvider(id, btn) {
-  if (!confirm('Deactivate this provider?')) return;
-  btn.textContent = '...';
-  fetch(API + '/admin/providers/' + id + '/deactivate', {
-    method: 'PATCH', headers: { 'x-admin-key': _adminKey }
-  }).then(function() { loadProviders(); });
-}
-
-function loadCustomers() {
-  document.getElementById('customers-list').innerHTML = '<p class="text-gray-600 text-sm text-center py-8">Loading...</p>';
-  adminFetch('/admin/customers').then(function(rows) {
-    if (!Array.isArray(rows)) { document.getElementById('customers-list').innerHTML = '<p class="text-red-400 text-sm text-center py-4">Error</p>'; return; }
-    if (!rows.length) { document.getElementById('customers-list').innerHTML = '<p class="text-gray-600 text-sm text-center py-8">No customers yet</p>'; return; }
-    var html = rows.map(function(c) {
-      return '<div class="row">'
-        + '<div class="flex items-center justify-between">'
-        + '<div>'
-        + '<p class="text-sm font-semibold text-white">'+(c.name||'No name')+'</p>'
-        + '<p class="text-xs text-gray-500">'+(c.phone||'--')+' &bull; Joined '+fmt(c.created_at)+'</p>'
-        + '</div>'
-        + '<span class="text-xs text-gray-400">'+c.job_count+' jobs</span>'
-        + '</div>'
-        + '</div>';
+function loadManagers(){
+  set('managers-list',null,'<p class="text-gray-600 text-sm text-center py-8">Loading...</p>');
+  adminFetch('/admin/managers').then(function(rows){
+    if(!Array.isArray(rows)){set('managers-list',null,'<p class="text-red-400 text-sm py-4">Error</p>');return;}
+    if(!rows.length){set('managers-list',null,'<p class="text-gray-600 text-sm text-center py-8">No managers yet. Create one above.</p>');return;}
+    var permKeys=['orders','providers','customers','payments','affiliates'];
+    var html=rows.map(function(m){
+      var perms=permKeys.filter(function(k){return m.permissions&&m.permissions[k];}).join(', ')||'No permissions';
+      return '<div class="card p-4 mb-2">'
+        +'<div class="flex items-start justify-between mb-2">'
+        +'<div>'
+        +'<p class="font-bold text-white">'+m.name+'</p>'
+        +'<p class="text-xs text-gray-500">@'+m.username+' · Last login: '+(m.last_login?fmt(m.last_login):'Never')+'</p>'
+        +'</div>'
+        +(m.is_active?'<span class="badge badge-green">Active</span>':'<span class="badge badge-red">Inactive</span>')
+        +'</div>'
+        +'<p class="text-xs text-gray-500 mb-3">Permissions: '+perms+'</p>'
+        +'<div class="flex gap-2">'
+        +(m.is_active
+          ?'<button onclick="toggleManager(\''+m.id+'\',false,this)" class="btn btn-red text-xs py-1.5">Suspend</button>'
+          :'<button onclick="toggleManager(\''+m.id+'\',true,this)" class="btn btn-green text-xs py-1.5">Restore</button>')
+        +'<button onclick="deleteManager(\''+m.id+'\',this)" class="btn btn-ghost text-xs py-1.5 text-red-500">Delete</button>'
+        +'</div>'
+        +'</div>';
     }).join('');
-    document.getElementById('customers-list').innerHTML = '<div class="card px-4">'+html+'</div>';
+    set('managers-list',null,html);
   });
 }
 
-function loadAffiliates() {
-  document.getElementById('affiliates-list').innerHTML = '<p class="text-gray-600 text-sm text-center py-8">Loading...</p>';
-  adminFetch('/admin/affiliates').then(function(rows) {
-    if (!Array.isArray(rows)) { document.getElementById('affiliates-list').innerHTML = '<p class="text-red-400 text-sm text-center py-4">Error</p>'; return; }
-    if (!rows.length) { document.getElementById('affiliates-list').innerHTML = '<p class="text-gray-600 text-sm text-center py-8">No affiliate referrals yet</p>'; return; }
-    var html = rows.map(function(a) {
-      return '<div class="card p-3 mb-2">'
-        + '<div class="flex items-center justify-between mb-1">'
-        + '<span class="font-semibold text-sm text-white">'+(a.referrer_name||'#'+a.referrer_id)+'</span>'
-        + '<span class="badge '+(a.referrer_type==='provider'?'badge-blue':'badge-green')+'">'+a.referrer_type+'</span>'
-        + '</div>'
-        + '<div class="text-xs text-gray-500">Code: '+a.code+' &bull; Bonus: $'+a.flat_bonus+(a.revenue_pct?' + '+a.revenue_pct+'%':'')+'</div>'
-        + '<div class="text-xs text-gray-600 mt-1">'+fmt(a.created_at)+' &bull; '+(a.paid_at?'<span class="text-green-400">Paid</span>':'<span class="text-yellow-400">Unpaid</span>')+'</div>'
-        + '</div>';
-    }).join('');
-    document.getElementById('affiliates-list').innerHTML = html;
-  });
+function toggleManager(id, activate, btn){
+  btn.textContent='...'; btn.disabled=true;
+  fetch(API+'/admin/managers/'+id,{method:'PATCH',headers:authHeaders(),body:JSON.stringify({is_active:activate})})
+    .then(function(){loadManagers();});
 }
 
-// Auto-login if key stored
-window.addEventListener('DOMContentLoaded', function() {
-  if (_adminKey) {
-    adminFetch('/admin/stats').then(function(data) {
-      if (!data.error) {
-        document.getElementById('screen-login').classList.remove('active');
-        document.getElementById('screen-main').classList.add('active');
-        renderStats(data);
-      } else {
-        sessionStorage.removeItem('roady_admin_key');
-        _adminKey = '';
-      }
+function deleteManager(id, btn){
+  if(!confirm('Permanently delete this manager?'))return;
+  btn.textContent='...'; btn.disabled=true;
+  fetch(API+'/admin/managers/'+id,{method:'DELETE',headers:authHeaders()}).then(function(){loadManagers();});
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function set(id, text, html){
+  var el=document.getElementById(id);
+  if(!el)return;
+  if(html!==undefined) el.innerHTML=html;
+  else el.textContent=text;
+}
+function fmt(d){
+  if(!d)return '--';
+  return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+
+// ── Auto-login on load ───────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', function(){
+  var key=sessionStorage.getItem('roady_admin_key');
+  var token=sessionStorage.getItem('roady_mgr_token');
+  if(key){
+    _adminKey=key; _role='admin';
+    fetch(API+'/admin/stats',{headers:{'x-admin-key':key}}).then(function(r){return r.json();}).then(function(data){
+      if(!data.error){enterApp(data);}
+      else{sessionStorage.removeItem('roady_admin_key');}
+    }).catch(function(){});
+  } else if(token){
+    _mgrToken=token; _role='manager';
+    fetch(API+'/admin/stats',{headers:{'Authorization':'Bearer '+token}}).then(function(r){return r.json();}).then(function(data){
+      if(!data.error){
+        document.querySelector('.admin-only').classList.add('hidden');
+        document.getElementById('role-badge').textContent='MANAGER';
+        enterApp(data);
+      } else {sessionStorage.removeItem('roady_mgr_token');}
     }).catch(function(){});
   }
 });
