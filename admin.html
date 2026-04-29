@@ -243,8 +243,8 @@ function loadProviders() {
         + '<div class="text-xs text-gray-600 mb-2">Jobs: '+(p.job_count||0)+' &bull; Joined: '+fmt(p.created_at)+'</div>'
         + '<div class="flex gap-2">'
         + (approved
-            ? '<button onclick="blockProvider('+p.id+',this)" class="btn-red">Block</button>'
-            : '<button onclick="approveProvider('+p.id+',this)" class="btn-approve">Approve</button>')
+            ? '<button onclick="deactivateProvider(\''+p.id+'\',this)" class="btn-red">Deactivate</button>'
+            : '<button onclick="activateProvider(\''+p.id+'\',this)" class="btn-approve">Activate</button>')
         + '</div>'
         + '</div>';
     }).join('');
@@ -252,17 +252,17 @@ function loadProviders() {
   });
 }
 
-function approveProvider(id, btn) {
+function activateProvider(id, btn) {
   btn.textContent = '...';
-  fetch(API + '/admin/providers/' + id + '/approve', {
+  fetch(API + '/admin/providers/' + id + '/activate', {
     method: 'PATCH', headers: { 'x-admin-key': _adminKey }
   }).then(function() { loadProviders(); });
 }
 
-function blockProvider(id, btn) {
-  if (!confirm('Block this provider?')) return;
+function deactivateProvider(id, btn) {
+  if (!confirm('Deactivate this provider?')) return;
   btn.textContent = '...';
-  fetch(API + '/admin/providers/' + id + '/block', {
+  fetch(API + '/admin/providers/' + id + '/deactivate', {
     method: 'PATCH', headers: { 'x-admin-key': _adminKey }
   }).then(function() { loadProviders(); });
 }

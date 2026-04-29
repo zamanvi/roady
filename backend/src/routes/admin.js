@@ -19,7 +19,7 @@ router.get('/stats', async (req, res) => {
       db.query('SELECT COUNT(*) FROM providers'),
       db.query('SELECT COUNT(*), status FROM jobs GROUP BY status'),
       db.query(`SELECT COALESCE(SUM(amount),0) as total FROM payments WHERE status='released'`),
-      db.query(`SELECT COUNT(*) FROM providers WHERE is_approved = false`),
+      db.query(`SELECT COUNT(*) FROM providers WHERE is_active = false OR is_active IS NULL`),
     ]);
 
     const jobStats = {};
@@ -57,7 +57,7 @@ router.get('/providers', async (req, res) => {
   try {
     const { rows } = await db.query(
       `SELECT id, company_name, owner_name, phone, email, city, state,
-              is_approved, is_online, created_at,
+              is_active, is_online, created_at,
         (SELECT COUNT(*) FROM jobs WHERE provider_id = providers.id) as job_count
        FROM providers ORDER BY created_at DESC LIMIT 100`
     );
@@ -67,18 +67,18 @@ router.get('/providers', async (req, res) => {
   }
 });
 
-router.patch('/providers/:id/approve', async (req, res) => {
+router.patch('/providers/:id/activate', async (req, res) => {
   try {
-    await db.query(`UPDATE providers SET is_approved = true WHERE id = $1`, [req.params.id]);
+    await db.query(`UPDATE providers SET is_active = true WHERE id = $1`, [req.params.id]);
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-router.patch('/providers/:id/block', async (req, res) => {
+router.patch('/providers/:id/deactivate', async (req, res) => {
   try {
-    await db.query(`UPDATE providers SET is_approved = false WHERE id = $1`, [req.params.id]);
+    await db.query(`UPDATE providers SET is_active = false WHERE id = $1`, [req.params.id]);
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
