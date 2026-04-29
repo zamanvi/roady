@@ -15,8 +15,15 @@ initSocket(server);
 
 // ── Security ──────────────────────────────────────────────────────────────────
 app.use(helmet());
+const allowedOrigins = [
+  'https://roady-bj1u.vercel.app',
+  process.env.CORS_ORIGIN,
+].filter(Boolean);
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
+  origin: function(origin, cb) {
+    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    cb(null, true); // allow all during testing
+  },
   methods: ['GET', 'POST', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
