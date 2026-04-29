@@ -138,7 +138,7 @@
   <div class="p-4 flex justify-between items-center"><div class="flex items-center gap-2"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="8" fill="#22c55e"/><path d="M4 20h2l1-4h14l1 4h2a1 1 0 000-2h-1l-1.5-5H8.5L7 18H6a1 1 0 000 2z" fill="white"/><circle cx="10" cy="21.5" r="2" fill="white"/><circle cx="22" cy="21.5" r="2" fill="white"/><path d="M20 14l3 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/><rect x="6" y="13" width="8" height="5" rx="1" fill="white" opacity="0.3"/><path d="M16 10v8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M13 10h6" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg><span class="text-xl font-bold tracking-tight">Roady</span></div><div class="flex items-center gap-2"><span class="text-xs bg-green-500 text-black px-2 py-0.5 rounded-full font-bold blink">ON THE WAY</span><button onclick="openProfile(currentScreenId())" class="w-9 h-9 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition border-2 border-gray-600"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#9ca3af"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/></svg></button></div></div>
   <div class="flex flex-col items-center px-6 flex-1 overflow-y-auto"><div class="w-full max-w-md py-4">
     <div class="bg-gray-900 rounded-2xl p-6 mb-4 text-center"><div class="text-5xl font-black text-green-400 mb-1" id="track-eta">--</div><div class="text-gray-400 text-sm mb-4">Estimated arrival</div><div class="bg-gray-800 h-2 rounded-full overflow-hidden"><div id="eta-bar" class="bg-green-500 h-2 rounded-full transition-all duration-1000" style="width:5%"></div></div></div>
-    <div class="bg-gray-900 rounded-2xl p-4 mb-4"><div class="text-xs text-gray-500 uppercase tracking-wide mb-3">Assigned Provider</div><div class="flex items-center gap-4 mb-4"><div class="w-14 h-14 bg-gray-700 rounded-full flex items-center justify-center text-2xl">&#x1F69B;</div><div class="flex-1"><div class="font-bold" id="track-name">--</div><div class="text-yellow-400 text-xs" id="track-rating">--</div><div class="text-green-400 text-xs mt-0.5" id="track-price">--</div></div><a href="tel:+15551234" class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-xl text-sm font-semibold transition">&#x1F4DE; Call</a></div><div id="track-map" class="mb-2 rounded-2xl overflow-hidden" style="height:260px;"></div>
+    <div class="bg-gray-900 rounded-2xl p-4 mb-4"><div class="text-xs text-gray-500 uppercase tracking-wide mb-3">Assigned Provider</div><div class="flex items-center gap-4 mb-4"><div class="w-14 h-14 bg-gray-700 rounded-full flex items-center justify-center text-2xl">&#x1F69B;</div><div class="flex-1"><div class="font-bold" id="track-name">--</div><div class="text-yellow-400 text-xs" id="track-rating">--</div><div class="text-green-400 text-xs mt-0.5" id="track-price">--</div></div><a id="track-call-btn" href="tel:+15551234" class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-xl text-sm font-semibold transition">&#x1F4DE; Call</a></div><div id="track-map" class="mb-2 rounded-2xl overflow-hidden" style="height:260px;"></div>
 <a id="track-map-link" href="https://maps.google.com" target="_blank" class="block text-center text-xs text-blue-400 underline mb-2">Open in Google Maps</a></div>
     <div class="bg-gray-900 rounded-2xl p-4 mb-4"><div class="text-xs text-gray-500 uppercase tracking-wide mb-3">Payment (Escrow)</div><div class="space-y-2 text-sm"><div class="flex items-center justify-between"><span class="text-gray-300">&#x1F512; Held Amount</span><span class="text-yellow-400 font-medium" id="track-price-esc">--</span></div><div class="flex items-center justify-between"><span class="text-gray-300">Status</span><span class="text-yellow-300 text-xs bg-yellow-900 px-2 py-0.5 rounded-full">Held until complete</span></div><div class="flex items-center justify-between"><span class="text-gray-300">Release</span><span class="text-gray-400 text-xs">After you confirm service</span></div></div></div>
     <div class="bg-gray-900 rounded-2xl p-4 mb-6"><div class="text-xs text-gray-500 uppercase tracking-wide mb-3">Safety &amp; Dispute</div><div class="grid grid-cols-2 gap-2"><button class="bg-gray-800 hover:bg-gray-700 py-3 rounded-xl text-xs font-medium transition">&#x26A0;&#xFE0F; Report Issue</button><button class="bg-gray-800 hover:bg-gray-700 py-3 rounded-xl text-xs font-medium transition">&#x1F4F8; Upload Evidence</button></div></div>
@@ -358,15 +358,14 @@ function confirmProvider(name,eta,price,rating,providerId){
 }
 function _confirmJobWithProvider(providerId,name,eta,price,rating){
   if(!_currentJobId||!providerId){
-    // No live job yet (demo mode) — go straight to tracking
-    showTracking(name,eta,price,rating);return;
+    showTracking(name,eta,price,rating,null);return;
   }
   var numPrice=parseFloat(price.replace(/[^0-9.]/g,''))||95;
   api('/jobs/'+_currentJobId+'/confirm',{method:'POST',body:{providerId:providerId,agreedPrice:numPrice}})
     .then(function(res){
       if(res.error){alert("Payment error: "+res.error);return;}
-      showTracking(name,eta,price,rating);
-    }).catch(function(){showTracking(name,eta,price,rating);});
+      showTracking(name,eta,price,rating,res.proxyNumber||null);
+    }).catch(function(){showTracking(name,eta,price,rating,null);});
 }
 // ── Live tracking map + socket ─────────────────────────────────────────────
 var _trackMap=null,_providerMarker=null,_customerMarker=null,_trackSocket=null;
@@ -403,7 +402,7 @@ function startTrackingSocket(jobId){
 function stopTrackingSocket(){if(_trackSocket){_trackSocket.disconnect();_trackSocket=null;}}
 
 // ── Show tracking screen ───────────────────────────────────────────────────
-function showTracking(name,eta,price,rating){
+function showTracking(name,eta,price,rating,proxyNumber){
   currentProvider={name:name,eta:eta,price:price,rating:rating};
   document.getElementById("track-name").textContent=name;
   document.getElementById("track-eta").textContent=eta;
@@ -411,6 +410,11 @@ function showTracking(name,eta,price,rating){
   document.getElementById("track-price").textContent="Est. "+price;
   document.getElementById("track-price-esc").textContent=price;
   document.getElementById("final-provider").textContent="Provider: "+name+" - "+price;
+  var callBtn=document.getElementById("track-call-btn");
+  if(callBtn){
+    if(proxyNumber){callBtn.href="tel:"+proxyNumber;callBtn.title="Masked number — your real number stays private";}
+    else{callBtn.removeAttribute("href");callBtn.style.opacity="0.4";callBtn.title="Call unavailable";}
+  }
   if(mapsLink())document.getElementById("track-map-link").href=mapsLink();
   goTo("screen-tracking");
   animateETA();

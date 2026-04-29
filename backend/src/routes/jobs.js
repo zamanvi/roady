@@ -137,11 +137,14 @@ router.post('/:id/confirm', requireAuth, async (req, res) => {
     // Set up Twilio proxy session for masked calling
     const custRes = await db.query(`SELECT phone FROM customers WHERE id=$1`, [req.user.id]);
     const provPhRes = await db.query(`SELECT phone FROM providers WHERE id=$1`, [providerId]);
+    let customerProxyNumber = null, providerProxyNumber = null;
     try {
       const proxy = await createProxySession(job.id, custRes.rows[0].phone, provPhRes.rows[0].phone);
+      customerProxyNumber = proxy.customerProxyNumber;
+      providerProxyNumber = proxy.providerProxyNumber;
       await db.query(
         `UPDATE jobs SET twilio_session_sid=$1, customer_proxy_number=$2, provider_proxy_number=$3 WHERE id=$4`,
-        [proxy.sessionSid, proxy.customerProxyNumber, proxy.providerProxyNumber, job.id]
+        [proxy.sessionSid, customerProxyNumber, providerProxyNumber, job.id]
       );
     } catch (proxyErr) {
       console.warn('Proxy session creation failed (non-fatal):', proxyErr.message);
@@ -155,6 +158,7 @@ router.post('/:id/confirm', requireAuth, async (req, res) => {
       serviceType: job.service_type,
       price: agreedPrice,
       clientSecret: escrow.clientSecret,
+      proxyNumber: providerProxyNumber,
     });
 
     res.json({
@@ -162,6 +166,7 @@ router.post('/:id/confirm', requireAuth, async (req, res) => {
       paymentIntentId: escrow.paymentIntentId,
       platformFee,
       providerPayout,
+      proxyNumber: customerProxyNumber,
     });
   } catch (err) {
     console.error('Confirm job error:', err);
