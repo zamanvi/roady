@@ -2,42 +2,60 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <meta name="theme-color" content="#000000"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <title>Roady - AI Towing</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
   <style>
-    *{-webkit-tap-highlight-color:transparent;box-sizing:border-box;}
-    body{background:#000;color:#fff;font-family:ui-sans-serif,system-ui,sans-serif;margin:0;}
+    *{-webkit-tap-highlight-color:transparent;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+    html{height:100%;overscroll-behavior:none;}
+    body{background:#000;color:#fff;font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;margin:0;min-height:100%;overscroll-behavior:none;}
     .hidden{display:none!important;}
-    .screen{display:none;flex-direction:column;min-height:100vh;}
+    .screen{display:none;flex-direction:column;min-height:100svh;min-height:100vh;}
     .screen.active{display:flex;}
-    #preview-img,#preview-vid{border-radius:.75rem;width:100%;display:block;margin-top:1rem;}
+    /* Safe area for iPhone notch + home bar */
+    .safe-top{padding-top:max(16px,env(safe-area-inset-top));}
+    .safe-bot{padding-bottom:max(16px,env(safe-area-inset-bottom));}
+    .safe-x{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));}
+    #preview-img,#preview-vid{border-radius:.75rem;width:100%;display:block;margin-top:1rem;max-height:200px;object-fit:cover;}
     @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
     @keyframes spin{to{transform:rotate(360deg)}}
     @keyframes ping{0%{transform:scale(1);opacity:1}75%,100%{transform:scale(2);opacity:0}}
     .blink{animation:blink 1.4s infinite;}
     .spin{animation:spin 1s linear infinite;}
     .ping{animation:ping 1s cubic-bezier(0,0,.2,1) infinite;}
-    .loc-tab{flex:1;padding:8px 4px;border-radius:10px;font-size:12px;font-weight:600;text-align:center;transition:all .2s;background:#1f2937;color:#9ca3af;border:none;cursor:pointer;}
-    .loc-tab.active{background:#2563eb;color:#fff;}
     .card-selected{border:2px solid #22c55e!important;}
-    .mode-btn{flex:1;padding:14px 8px;border-radius:16px;font-weight:700;font-size:14px;text-align:center;cursor:pointer;border:2px solid transparent;transition:all .2s;}
+    .mode-btn{flex:1;padding:12px 6px;border-radius:16px;font-weight:700;font-size:13px;text-align:center;cursor:pointer;border:2px solid transparent;transition:all .2s;}
     .mode-urgent{background:#1f2937;border-color:#ef4444;}
     .mode-urgent.selected{background:#7f1d1d;border-color:#ef4444;}
     .mode-bargain{background:#1f2937;border-color:#2563eb;}
     .mode-bargain.selected{background:#1e3a8a;border-color:#60a5fa;}
-    .progress-dot{width:8px;height:8px;border-radius:50%;background:#374151;}
+    .progress-dot{width:8px;height:8px;border-radius:50%;background:#374151;flex-shrink:0;}
     .progress-dot.done{background:#22c55e;}
     .progress-dot.active{background:#2563eb;}
-    #track-map{height:260px;border-radius:16px;overflow:hidden;background:#1f2937;}
-    /* ── Responsive: tablet/desktop ── */
-    @media (min-width:768px){
+    #track-map{height:220px;border-radius:16px;overflow:hidden;background:#1a1a2e;}
+    /* Dark map tiles override */
+    .leaflet-tile{filter:brightness(0.85) contrast(1.1) saturate(0.7) hue-rotate(180deg) invert(1);}
+    /* Responsive */
+    @media(min-width:480px){#track-map{height:260px;}}
+    @media(min-width:768px){
       body{background:#0a0a0a;display:flex;justify-content:center;}
-      .screen{max-width:500px;width:100%;border-left:1px solid #111;border-right:1px solid #111;}
+      .screen{max-width:480px;width:100%;border-left:1px solid #111;border-right:1px solid #111;}
+      #track-map{height:300px;}
     }
+    /* Small phones (320px) */
+    @media(max-width:360px){
+      .text-5xl{font-size:2.5rem!important;}
+      .text-3xl{font-size:1.5rem!important;}
+      .py-5{padding-top:1rem!important;padding-bottom:1rem!important;}
+      .text-lg{font-size:0.95rem!important;}
+    }
+    input,textarea,select{font-size:16px!important;} /* Prevent iOS zoom on focus */
   </style>
 </head><body>
 <!-- PROGRESS BAR (reused) -->
@@ -397,8 +415,8 @@ function initTrackingMap(){
   if(!window.L)return;
   var center=coords?[coords.lat,coords.lng]:[37.7749,-122.4194];
   if(_trackMap){_trackMap.invalidateSize();if(coords)_trackMap.setView(center,14);return;}
-  _trackMap=L.map('track-map',{zoomControl:true,attributionControl:false}).setView(center,14);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(_trackMap);
+  _trackMap=L.map('track-map',{zoomControl:false,attributionControl:false}).setView(center,14);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19,subdomains:'abcd'}).addTo(_trackMap);
   _customerIcon=L.divIcon({html:'<div style="background:#3b82f6;width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.6)"></div>',iconSize:[16,16],iconAnchor:[8,8],className:''});
   _providerIcon=L.divIcon({html:'<div style="font-size:26px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))">🚛</div>',iconSize:[32,32],iconAnchor:[16,16],className:''});
   if(coords){_customerMarker=L.marker([coords.lat,coords.lng],{icon:_customerIcon}).addTo(_trackMap).bindPopup('Your location');}
