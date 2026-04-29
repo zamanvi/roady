@@ -143,7 +143,8 @@
   <div class="p-4 flex justify-between items-center"><button onclick="goTo('screen-mode')" class="text-gray-400 text-sm">&larr;</button><div class="flex items-center gap-2"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="8" fill="#22c55e"/><path d="M4 20h2l1-4h14l1 4h2a1 1 0 000-2h-1l-1.5-5H8.5L7 18H6a1 1 0 000 2z" fill="white"/><circle cx="10" cy="21.5" r="2" fill="white"/><circle cx="22" cy="21.5" r="2" fill="white"/><path d="M20 14l3 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/><rect x="6" y="13" width="8" height="5" rx="1" fill="white" opacity="0.3"/><path d="M16 10v8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M13 10h6" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg><span class="text-xl font-bold tracking-tight">Roady</span></div><span class="text-xs text-gray-400">Choose Provider</span></div>
   <div class="flex flex-col items-center px-6 flex-1 overflow-y-auto"><div class="w-full max-w-md py-4">
     <h2 class="text-2xl font-bold mb-1 text-center">Choose Your Provider</h2>
-    <p id="providers-subtitle" class="text-gray-400 text-sm text-center mb-6">3 best options matched for you</p>
+    <p id="providers-subtitle" class="text-gray-400 text-sm text-center mb-3">3 best options matched for you</p>
+    <div id="ai-analysis-card" class="hidden bg-gray-900 border border-gray-700 rounded-2xl p-4 mb-4"></div>
     <div id="urgent-assign" class="hidden"><div class="bg-red-900 bg-opacity-30 border border-red-700 rounded-2xl p-5 mb-4"><div class="flex items-center gap-2 mb-3"><span class="text-xs bg-red-600 text-white px-2 py-0.5 rounded-full font-bold blink">AUTO-ASSIGNED</span><span class="text-xs text-gray-400">Urgent Mode</span></div><div class="flex items-center gap-4 mb-4"><div class="w-14 h-14 bg-gray-700 rounded-full flex items-center justify-center text-2xl">&#x1F69B;</div><div><div class="font-bold text-lg">Mikes Towing Co.</div><div class="flex items-center gap-1 text-yellow-400 text-sm">&#x2B50;&#x2B50;&#x2B50;&#x2B50;&#x2B50; <span class="text-gray-400 text-xs ml-1">(4.9 &bull; 312 jobs)</span></div><div class="text-green-400 text-sm font-semibold mt-1">&#x1F4CD; 1.2 miles away</div></div></div><div class="grid grid-cols-3 gap-2 text-center text-xs mb-4"><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold text-base">8 min</div><div class="text-gray-400">ETA</div></div><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold text-base">$95</div><div class="text-gray-400">Price</div></div><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold text-base">4.9&#x2B50;</div><div class="text-gray-400">Rating</div></div></div><div class="text-xs text-gray-500 mb-4">&#x1F512; Payment held in escrow until service complete</div><button onclick="confirmProvider('Mikes Towing Co.','8 min','$95','4.9')" class="bg-red-600 hover:bg-red-500 w-full py-4 rounded-xl font-bold text-base transition">&#x1F6A8; Confirm &amp; Dispatch Now</button></div></div>
     <div id="bargain-options" class="hidden space-y-4">
       <div id="card-fastest" class="bg-gray-900 border border-gray-800 rounded-2xl p-4 cursor-pointer transition" onclick="selectCard('fastest')"><div class="flex items-center justify-between mb-3"><span class="text-xs bg-yellow-500 text-black px-2 py-0.5 rounded-full font-bold">&#x26A1; FASTEST</span><span class="text-xs text-gray-500">2.1 mi</span></div><div class="flex items-center gap-3 mb-3"><div class="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center text-xl">&#x1F69B;</div><div><div class="font-semibold">QuickTow Express</div><div class="text-yellow-400 text-xs">&#x2B50;&#x2B50;&#x2B50;&#x2B50; 4.6 <span class="text-gray-500">(189 jobs)</span></div></div></div><div class="grid grid-cols-3 gap-2 text-center text-xs"><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold">11 min</div><div class="text-gray-400">ETA</div></div><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold">$110</div><div class="text-gray-400">Price</div></div><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold">4.6&#x2B50;</div><div class="text-gray-400">Rating</div></div></div></div>
@@ -372,35 +373,76 @@ function handleVerify(){
 }
 // ── Mode selection ─────────────────────────────────────────────────────────
 function selectMode(mode){selectedMode=mode;["urgent","bargain"].forEach(function(m){document.getElementById("btn-"+m).classList.remove("selected");});document.getElementById("mode-desc-urgent").classList.add("hidden");document.getElementById("mode-desc-bargain").classList.add("hidden");document.getElementById("btn-"+mode).classList.add("selected");document.getElementById("mode-desc-"+mode).classList.remove("hidden");var btn=document.getElementById("mode-continue-btn");btn.disabled=false;btn.className=(mode==="urgent")?"bg-red-600 hover:bg-red-500 w-full py-5 rounded-2xl text-lg font-semibold transition":"bg-blue-600 hover:bg-blue-500 w-full py-5 rounded-2xl text-lg font-semibold transition";btn.textContent=(mode==="urgent")?"Dispatch Immediately":"Find Best Providers";}
+function compressPhoto(file, callback) {
+  if(!file||!file.type.startsWith('image')){callback(null);return;}
+  var img=new Image(), url=URL.createObjectURL(file);
+  img.onload=function(){
+    var maxW=800, w=img.width, h=img.height;
+    if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
+    var canvas=document.createElement('canvas');
+    canvas.width=w;canvas.height=h;
+    canvas.getContext('2d').drawImage(img,0,0,w,h);
+    URL.revokeObjectURL(url);
+    callback(canvas.toDataURL('image/jpeg',0.75));
+  };
+  img.onerror=function(){URL.revokeObjectURL(url);callback(null);};
+  img.src=url;
+}
+
 function continueMode(){
   if(!selectedMode)return;
   var btn=document.getElementById("mode-continue-btn");
-  setBtn(btn,true,"Finding providers...");
+  setBtn(btn,true,"🤖 AI analyzing your situation...");
   var addr=document.getElementById("manual-addr").value;
   var locText=coords?"GPS: "+coords.lat.toFixed(5)+","+coords.lng.toFixed(5):addr||"Unknown";
-  api('/jobs',{method:'POST',body:{
-    mode:selectedMode,
-    locationText:locText,
-    locationLat:coords?coords.lat:null,
-    locationLng:coords?coords.lng:null,
-  }}).then(function(res){
-    setBtn(btn,false,selectedMode==="urgent"?"Dispatch Immediately":"Find Best Providers");
-    if(res.error){alert("Error: "+res.error);return;}
-    _currentJobId=res.job?res.job.id:null;
-    if(_currentJobId)sessionStorage.setItem('roady_jid',_currentJobId);
-    document.getElementById("urgent-assign").classList.toggle("hidden",selectedMode!=="urgent");
-    document.getElementById("bargain-options").classList.toggle("hidden",selectedMode!=="bargain");
-    document.getElementById("providers-subtitle").textContent=(selectedMode==="urgent")?"AI auto-assigned best available provider":"3 best bids matched for you";
-    goTo("screen-providers");
-  }).catch(function(){
-    setBtn(btn,false,selectedMode==="urgent"?"Dispatch Immediately":"Find Best Providers");
-    // Offline fallback — continue to providers screen anyway
-    _currentJobId=null;
-    document.getElementById("urgent-assign").classList.toggle("hidden",selectedMode!=="urgent");
-    document.getElementById("bargain-options").classList.toggle("hidden",selectedMode!=="bargain");
-    goTo("screen-providers");
-  });
+
+  function postJob(photoBase64){
+    api('/jobs',{method:'POST',body:{
+      mode:selectedMode,
+      locationText:locText,
+      locationLat:coords?coords.lat:null,
+      locationLng:coords?coords.lng:null,
+      photoBase64:photoBase64||null,
+    }}).then(function(res){
+      setBtn(btn,false,selectedMode==="urgent"?"Dispatch Immediately":"Find Best Providers");
+      if(res.error){alert("Error: "+res.error);return;}
+      _currentJobId=res.job?res.job.id:null;
+      if(_currentJobId)sessionStorage.setItem('roady_jid',_currentJobId);
+      // Show AI analysis card if available
+      if(res.job&&res.job.ai){renderAICard(res.job.ai);}
+      document.getElementById("urgent-assign").classList.toggle("hidden",selectedMode!=="urgent");
+      document.getElementById("bargain-options").classList.toggle("hidden",selectedMode!=="bargain");
+      document.getElementById("providers-subtitle").textContent=(selectedMode==="urgent")?"AI auto-assigned best available provider":"3 best bids matched for you";
+      goTo("screen-providers");
+    }).catch(function(){
+      setBtn(btn,false,selectedMode==="urgent"?"Dispatch Immediately":"Find Best Providers");
+      _currentJobId=null;
+      document.getElementById("urgent-assign").classList.toggle("hidden",selectedMode!=="urgent");
+      document.getElementById("bargain-options").classList.toggle("hidden",selectedMode!=="bargain");
+      goTo("screen-providers");
+    });
+  }
+
+  if(mediaFile&&mediaFile.type.startsWith('image')){
+    compressPhoto(mediaFile,function(b64){postJob(b64);});
+  } else {
+    postJob(null);
+  }
 }
+
+function renderAICard(ai){
+  var el=document.getElementById("ai-analysis-card");
+  if(!el)return;
+  var urgColor=ai.urgency==="high"?"#ef4444":ai.urgency==="medium"?"#f59e0b":"#22c55e";
+  el.innerHTML='<div style="border-left:3px solid '+urgColor+';padding-left:10px;">'
+    +'<p style="font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">🤖 AI Analysis</p>'
+    +'<p style="font-size:13px;font-weight:700;color:#fff;margin-bottom:2px;">'+capitalise(ai.serviceType.replace('_',' '))+'</p>'
+    +'<p style="font-size:12px;color:#d1d5db;margin-bottom:4px;">'+ai.description+'</p>'
+    +'<p style="font-size:12px;color:#4ade80;font-weight:600;">Est. $'+(ai.priceMin||'?')+' – $'+(ai.priceMax||'?')+'</p>'
+    +'</div>';
+  el.classList.remove("hidden");
+}
+function capitalise(s){return s?s.charAt(0).toUpperCase()+s.slice(1):s;}
 // ── Card selection ─────────────────────────────────────────────────────────
 function selectCard(card){selectedCard=card;["fastest","cheapest","rated"].forEach(function(c){document.getElementById("card-"+c).classList.remove("card-selected");});document.getElementById("card-"+card).classList.add("card-selected");var p=providerData[card],btn=document.getElementById("confirm-bargain-btn");btn.disabled=false;btn.textContent="Confirm "+p.name+" - "+p.price;btn.className="bg-green-500 hover:bg-green-400 w-full py-5 rounded-2xl text-lg font-bold transition";}
 function confirmBargain(){

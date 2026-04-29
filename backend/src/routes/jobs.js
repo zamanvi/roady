@@ -3,39 +3,78 @@ const db = require('../db');
 const { requireAuth, requireProvider } = require('../middleware/auth');
 const { createEscrow } = require('../services/stripe');
 const { createProxySession } = require('../services/twilio');
+const { analyzeJobPhoto } = require('../services/ai');
 const { getIO } = require('../socket');
+
+// ── Auto-add AI columns if not present ───────────────────────────────────────
+db.query(`
+  ALTER TABLE jobs
+    ADD COLUMN IF NOT EXISTS media_url TEXT,
+    ADD COLUMN IF NOT EXISTS ai_service_type VARCHAR(50),
+    ADD COLUMN IF NOT EXISTS ai_description TEXT,
+    ADD COLUMN IF NOT EXISTS ai_price_min NUMERIC(8,2),
+    ADD COLUMN IF NOT EXISTS ai_price_max NUMERIC(8,2),
+    ADD COLUMN IF NOT EXISTS ai_urgency VARCHAR(10)
+`).catch(err => console.warn('jobs AI columns:', err.message));
 
 // ── Customer: create job request ──────────────────────────────────────────────
 router.post('/', requireAuth, async (req, res) => {
   if (req.user.role !== 'customer') return res.status(403).json({ error: 'Customers only' });
 
-  const { mode, serviceType, locationText, locationLat, locationLng, mediaUrl } = req.body;
+  const { mode, locationText, locationLat, locationLng, photoBase64 } = req.body;
   if (!mode || !locationText) return res.status(400).json({ error: 'mode and locationText required' });
   if (!['urgent', 'bargain'].includes(mode)) return res.status(400).json({ error: 'mode must be urgent or bargain' });
 
   try {
+    // Create job first
     const { rows } = await db.query(
       `INSERT INTO jobs
-         (customer_id, mode, service_type, location_text, location_lat, location_lng, media_url, status)
-       VALUES ($1,$2,$3,$4,$5,$6,$7, $8)
+         (customer_id, mode, location_text, location_lat, location_lng, status)
+       VALUES ($1,$2,$3,$4,$5,$6)
        RETURNING *`,
-      [req.user.id, mode, serviceType, locationText,
-       locationLat || null, locationLng || null, mediaUrl || null,
+      [req.user.id, mode, locationText,
+       locationLat || null, locationLng || null,
        mode === 'urgent' ? 'pending' : 'bidding']
     );
     const job = rows[0];
 
-    // Broadcast new job to all online providers in same state (real: geo filter)
+    // AI photo analysis (non-fatal, runs in background)
+    let aiData = null;
+    if (photoBase64) {
+      aiData = await analyzeJobPhoto(photoBase64).catch(() => null);
+      if (aiData) {
+        await db.query(
+          `UPDATE jobs SET
+             media_url=$1, ai_service_type=$2, ai_description=$3,
+             ai_price_min=$4, ai_price_max=$5, ai_urgency=$6
+           WHERE id=$7`,
+          [photoBase64, aiData.serviceType, aiData.description,
+           aiData.priceMin, aiData.priceMax, aiData.urgency, job.id]
+        ).catch(() => {});
+      }
+    }
+
+    // Broadcast to providers with AI enriched data
     const io = getIO();
     io.to('providers').emit('new_job', {
       id: job.id,
       mode: job.mode,
-      serviceType: job.service_type,
       locationText: job.location_text,
       createdAt: job.created_at,
+      aiServiceType: aiData?.serviceType,
+      aiDescription: aiData?.description,
+      aiPriceMin: aiData?.priceMin,
+      aiPriceMax: aiData?.priceMax,
+      aiUrgency: aiData?.urgency,
+      hasPhoto: !!photoBase64,
     });
 
-    res.status(201).json({ job });
+    res.status(201).json({
+      job: {
+        ...job,
+        ai: aiData || null,
+      }
+    });
   } catch (err) {
     console.error('Create job error:', err);
     res.status(500).json({ error: 'Server error' });
