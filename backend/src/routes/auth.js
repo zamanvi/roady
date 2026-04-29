@@ -8,17 +8,10 @@ function signToken(payload) {
   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '30d' });
 }
 
-const DEV_BYPASS = process.env.NODE_ENV !== 'production' || process.env.DEV_OTP_BYPASS === 'true';
-
 // ── Customer: send OTP ────────────────────────────────────────────────────────
 router.post('/customer/send-otp', async (req, res) => {
   const { phone } = req.body;
   if (!phone) return res.status(400).json({ error: 'Phone required' });
-
-  // Dev bypass: any phone ending in 0000 skips Twilio
-  if (DEV_BYPASS && phone.endsWith('0000')) {
-    return res.json({ ok: true, dev: true });
-  }
 
   try {
     await sendOTP(phone);
@@ -35,10 +28,7 @@ router.post('/customer/verify-otp', async (req, res) => {
   if (!phone || !code) return res.status(400).json({ error: 'Phone and code required' });
 
   try {
-    // Dev bypass: phone ending 0000 + code 000000 always passes
-    const approved = (DEV_BYPASS && phone.endsWith('0000') && code === '000000')
-      ? true
-      : await checkOTP(phone, code);
+    const approved = await checkOTP(phone, code);
     if (!approved) return res.status(401).json({ error: 'Invalid or expired code' });
 
     // Upsert customer
@@ -78,6 +68,20 @@ router.post('/customer/verify-otp', async (req, res) => {
     console.error('Verify OTP error:', err);
     res.status(500).json({ error: 'Server error' });
   }
+});
+
+// ── DEV: skip OTP login (remove before go-live) ───────────────────────────────
+router.post('/customer/dev-login', async (req, res) => {
+  if (process.env.NODE_ENV === 'production' && process.env.DEV_OTP_BYPASS !== 'true')
+    return res.status(404).json({ error: 'Not found' });
+  const phone = '+10000000000';
+  const { rows } = await db.query(
+    `INSERT INTO customers (phone) VALUES ($1)
+     ON CONFLICT (phone) DO UPDATE SET phone = EXCLUDED.phone RETURNING *`,
+    [phone]
+  );
+  const token = signToken({ id: rows[0].id, role: 'customer', phone });
+  res.json({ token, customer: { id: rows[0].id, phone, name: rows[0].name } });
 });
 
 // ── Provider: register ────────────────────────────────────────────────────────

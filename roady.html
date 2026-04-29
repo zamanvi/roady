@@ -74,6 +74,8 @@
     <p id="verify-error" class="text-red-400 text-sm text-center mb-3 hidden"></p>
     <button id="verify-btn" onclick="handleVerify()" class="bg-green-500 w-full py-5 rounded-2xl text-lg font-semibold mb-4 transition">&#x2705; Verify &amp; Create Account</button>
     <button onclick="handleSendCode(true)" class="w-full text-center text-sm text-gray-400 underline">Resend code</button>
+    <!-- DEV ONLY: remove before go-live -->
+    <button onclick="devSkipOTP()" class="w-full text-center text-xs text-yellow-600 underline mt-3">Skip OTP (Dev)</button>
   </div></div>
   <div class="text-center text-xs text-gray-500 py-6">AI Powered &bull; Live Tracking &bull; Secure Payment</div>
 </div>
@@ -223,6 +225,17 @@ function handleSendCode(resend){
       setBtn(btn,false,"Request Instant Help");
       showError(errEl,"Network error — check connection.");
     });
+}
+// ── DEV: skip OTP (remove before go-live) ───────────────────────────────────
+function devSkipOTP(){
+  api('/auth/customer/dev-login',{method:'POST',body:{}})
+    .then(function(res){
+      if(res.error){alert(res.error);return;}
+      _token=res.token;
+      localStorage.setItem('roady_token',_token);
+      _customerId=res.customer.id;
+      goTo('screen-dispatch');
+    }).catch(function(){alert('Dev login failed');});
 }
 // ── Verify → create/login account → go to dispatch ─────────────────────────
 function handleVerify(){
