@@ -258,7 +258,12 @@ function handleVerify(){
   api('/auth/customer/verify-otp',{method:'POST',body:{phone:'+1'+rawPhone,code:entered,refCode:refCode}})
     .then(function(res){
       setBtn(btn,false,"Verify & Create Account");
-      if(res.error){showError(errEl,res.error);return;}
+      if(res.error){
+        var msg=res.error==='Server error'
+          ?'SMS service not active yet — use "Skip OTP (Dev)" link below'
+          :'Wrong code — check your SMS or tap Resend';
+        showError(errEl,msg);return;
+      }
       _token=res.token;_customerId=res.customer.id;
       localStorage.setItem('roady_token',_token);
       localStorage.setItem('roady_cid',_customerId);
