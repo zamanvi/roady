@@ -224,20 +224,27 @@ document.getElementById("media-input").addEventListener("change",function(){var 
 function mapsLink(){return coords?"https://maps.google.com/?q="+coords.lat+","+coords.lng:"";}
 function setLocBadge(txt,color){var b=document.getElementById("loc-status-badge");if(b){b.textContent=txt;b.style.color=color||"";}}
 function autoDetectLocation(){
-  if(!navigator.geolocation){setLocBadge("GPS unavailable","#ef4444");return;}
+  if(!navigator.geolocation){
+    setLocBadge("Enter address ↓","#ef4444");
+    document.getElementById("loc-hint").textContent="⚠️ GPS not available — type your address (required)";
+    document.getElementById("manual-addr").placeholder="Your street address (required)";
+    return;
+  }
   setLocBadge("Detecting...","#9ca3af");
   navigator.geolocation.getCurrentPosition(function(pos){
     coords={lat:pos.coords.latitude,lng:pos.coords.longitude,acc:pos.coords.accuracy};
     setLocBadge("📍 GPS located","#4ade80");
     document.getElementById("loc-hint").textContent="Location confirmed — provider will see your exact position";
-    // Reverse geocode via free API for human-readable address
+    document.getElementById("manual-addr").placeholder="Street address or landmark...";
     fetch("https://nominatim.openstreetmap.org/reverse?lat="+coords.lat+"&lon="+coords.lng+"&format=json")
       .then(function(r){return r.json();}).then(function(d){
         if(d&&d.display_name){document.getElementById("manual-addr").value=d.display_name.split(",").slice(0,3).join(",").trim();}
       }).catch(function(){});
   },function(){
-    setLocBadge("Enter manually","#f59e0b");
-    document.getElementById("loc-hint").textContent="Type your address below so the provider can find you";
+    coords=null;
+    setLocBadge("Enter address ↓","#f59e0b");
+    document.getElementById("loc-hint").textContent="⚠️ GPS denied — type your address (required to proceed)";
+    document.getElementById("manual-addr").placeholder="Your street address (required)";
   },{timeout:8000,enableHighAccuracy:true});
 }
 // Auto-detect silently on page load
@@ -280,9 +287,17 @@ function handleResend(){
 // ── Send verification code ─────────────────────────────────────────────────
 function handleSendCode(resend){
   var rawPhone=document.getElementById("phone-input").value.replace(/\D/g,"");
+  var addr=document.getElementById("manual-addr").value.trim();
   var errEl=document.getElementById("capture-error");
   var btn=document.getElementById("send-code-btn");
   if(!resend&&rawPhone.length<10){showError(errEl,"Enter valid 10-digit phone number.");return;}
+  if(!coords&&!addr){
+    showError(errEl,"Location required — enter your address so the provider can find you.");
+    document.getElementById("manual-addr").focus();
+    document.getElementById("manual-addr").style.borderColor="#ef4444";
+    return;
+  }
+  document.getElementById("manual-addr").style.borderColor="";
   hideError(errEl);
   setBtn(btn,true,"Sending code...");
   function goToVerify(){
