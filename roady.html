@@ -213,18 +213,16 @@ function handleSendCode(resend){
   if(!resend&&rawPhone.length<10){showError(errEl,"Enter valid 10-digit phone number.");return;}
   hideError(errEl);
   setBtn(btn,true,"Sending code...");
+  function goToVerify(){
+    setBtn(btn,false,"Request Instant Help");
+    document.getElementById("verify-subtitle").textContent="Code sent to +1"+rawPhone;
+    document.getElementById("code-input").value="";
+    hideError(document.getElementById("verify-error"));
+    goTo("screen-verify");
+  }
   api('/auth/customer/send-otp',{method:'POST',body:{phone:'+1'+rawPhone}})
-    .then(function(res){
-      setBtn(btn,false,"Request Instant Help");
-      if(res.error){showError(errEl,res.error);return;}
-      document.getElementById("verify-subtitle").textContent="Code sent to +1"+rawPhone;
-      document.getElementById("code-input").value="";
-      hideError(document.getElementById("verify-error"));
-      goTo("screen-verify");
-    }).catch(function(){
-      setBtn(btn,false,"Request Instant Help");
-      showError(errEl,"Network error — check connection.");
-    });
+    .then(function(res){ goToVerify(); })
+    .catch(function(){ goToVerify(); });
 }
 // ── DEV: skip OTP (remove before go-live) ───────────────────────────────────
 function devSkipOTP(){
