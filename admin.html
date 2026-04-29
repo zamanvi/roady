@@ -521,7 +521,7 @@ function loadAffiliates(){
         +'<span class="badge '+(a.referrer_type==='provider'?'badge-blue':'badge-green')+'">'+a.referrer_type+'</span>'
         +'</div>'
         +'<p class="text-xs text-gray-500">Code: '+a.code+' · Bonus: $'+a.flat_bonus+(a.revenue_pct?' + '+a.revenue_pct+'%':'')+'</p>'
-        +'<p class="text-xs text-gray-600 mt-1">'+fmt(a.created_at)+' · '+(a.paid_at?'<span style="color:#4ade80">Paid</span>':'<span style="color:#fbbf24">Unpaid</span>')+'</p>'
+        +'<p class="text-xs text-gray-600 mt-1">'+fmt(a.created_at)+' · '+(a.flat_paid?'<span style="color:#4ade80">Paid</span>':'<span style="color:#fbbf24">Unpaid</span>')+' · <span class="badge badge-gray">'+a.status+'</span></p>'
         +'</div>';
     }).join('');
     set('affiliates-list',null,html);

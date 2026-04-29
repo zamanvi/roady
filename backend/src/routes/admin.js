@@ -3,7 +3,7 @@ const db = require('../db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// ── Auto-create managers table ────────────────────────────────────────────────
+// ── Auto-create tables ────────────────────────────────────────────────────────
 db.query(`
   CREATE TABLE IF NOT EXISTS managers (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -16,6 +16,36 @@ db.query(`
     created_at TIMESTAMPTZ DEFAULT NOW()
   )
 `).catch(err => console.error('Manager table init error:', err.message));
+
+db.query(`
+  CREATE TABLE IF NOT EXISTS affiliate_codes (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_type VARCHAR(10) NOT NULL CHECK (user_type IN ('customer','provider')),
+    user_id UUID NOT NULL,
+    code VARCHAR(20) UNIQUE NOT NULL,
+    clicks INT DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  )
+`).catch(err => console.error('affiliate_codes init error:', err.message));
+
+db.query(`
+  CREATE TABLE IF NOT EXISTS affiliate_referrals (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    referrer_type VARCHAR(10) NOT NULL,
+    referrer_id UUID NOT NULL,
+    referred_type VARCHAR(10) NOT NULL,
+    referred_id UUID NOT NULL,
+    code VARCHAR(20) NOT NULL,
+    flat_bonus NUMERIC(8,2),
+    flat_paid BOOLEAN DEFAULT FALSE,
+    revenue_pct NUMERIC(5,4) DEFAULT 0,
+    revenue_window_days SMALLINT DEFAULT 90,
+    revenue_window_end TIMESTAMPTZ,
+    total_revenue_earned NUMERIC(10,2) DEFAULT 0,
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending','active','paid','expired')),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  )
+`).catch(err => console.error('affiliate_referrals init error:', err.message));
 
 // ── Auth middleware ───────────────────────────────────────────────────────────
 function requireAdmin(req, res, next) {
@@ -263,7 +293,7 @@ router.get('/affiliates', requireAdminOrManager('affiliates'), async (req, res) 
   try {
     const { rows } = await db.query(`
       SELECT ar.id, ar.referrer_type, ar.referrer_id, ar.referred_type,
-             ar.code, ar.flat_bonus, ar.revenue_pct, ar.paid_at, ar.created_at,
+             ar.code, ar.flat_bonus, ar.revenue_pct, ar.flat_paid, ar.status, ar.created_at,
              CASE ar.referrer_type
                WHEN 'customer' THEN (SELECT phone FROM customers WHERE id=ar.referrer_id)
                WHEN 'provider' THEN (SELECT company_name FROM providers WHERE id=ar.referrer_id)
