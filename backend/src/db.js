@@ -1,13 +1,12 @@
 const { Pool } = require('pg');
-const dns = require('dns');
-
-// Railway doesn't support IPv6 outbound — force IPv4 DNS resolution
-if (typeof dns.setDefaultResultOrder === 'function') {
-  dns.setDefaultResultOrder('ipv4first');
-}
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  host:     process.env.PGHOST     || undefined,
+  port:     process.env.PGPORT     ? parseInt(process.env.PGPORT) : undefined,
+  user:     process.env.PGUSER     || undefined,
+  password: process.env.PGPASSWORD || undefined,
+  database: process.env.PGDATABASE || undefined,
+  connectionString: process.env.PGHOST ? undefined : process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
   max: 20,
   idleTimeoutMillis: 30000,
