@@ -70,7 +70,7 @@
   <div class="flex flex-col items-center justify-center flex-1 px-6"><div class="w-full max-w-md">
     <h2 class="text-3xl font-bold mb-2 text-center">Verify Phone</h2>
     <p id="verify-subtitle" class="text-gray-400 mb-8 text-center text-sm">Code sent to your number</p>
-    <div class="bg-gray-900 p-5 rounded-2xl mb-4"><label class="text-sm text-gray-400 block mb-2">6-Digit Code</label><input id="code-input" type="tel" inputmode="numeric" placeholder="------" maxlength="6" class="w-full bg-gray-800 p-3 rounded-xl text-center text-2xl font-mono tracking-widest outline-none text-white"/></div>
+    <div class="bg-gray-900 p-5 rounded-2xl mb-4"><label class="text-sm text-gray-400 block mb-2">6-Digit Code</label><input id="code-input" type="tel" inputmode="numeric" autocomplete="one-time-code" placeholder="------" maxlength="6" class="w-full bg-gray-800 p-3 rounded-xl text-center text-2xl font-mono tracking-widest outline-none text-white"/></div>
     <p id="verify-error" class="text-red-400 text-sm text-center mb-3 hidden"></p>
     <button id="verify-btn" onclick="handleVerify()" class="bg-green-500 w-full py-5 rounded-2xl text-lg font-semibold mb-4 transition">&#x2705; Verify &amp; Create Account</button>
     <button onclick="handleSendCode(true)" class="w-full text-center text-sm text-gray-400 underline">Resend code</button>

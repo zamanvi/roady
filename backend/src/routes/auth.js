@@ -8,10 +8,17 @@ function signToken(payload) {
   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '30d' });
 }
 
+const DEV_BYPASS = process.env.NODE_ENV !== 'production' || process.env.DEV_OTP_BYPASS === 'true';
+
 // ── Customer: send OTP ────────────────────────────────────────────────────────
 router.post('/customer/send-otp', async (req, res) => {
   const { phone } = req.body;
   if (!phone) return res.status(400).json({ error: 'Phone required' });
+
+  // Dev bypass: any phone ending in 0000 skips Twilio
+  if (DEV_BYPASS && phone.endsWith('0000')) {
+    return res.json({ ok: true, dev: true });
+  }
 
   try {
     await sendOTP(phone);
@@ -28,7 +35,10 @@ router.post('/customer/verify-otp', async (req, res) => {
   if (!phone || !code) return res.status(400).json({ error: 'Phone and code required' });
 
   try {
-    const approved = await checkOTP(phone, code);
+    // Dev bypass: phone ending 0000 + code 000000 always passes
+    const approved = (DEV_BYPASS && phone.endsWith('0000') && code === '000000')
+      ? true
+      : await checkOTP(phone, code);
     if (!approved) return res.status(401).json({ error: 'Invalid or expired code' });
 
     // Upsert customer
