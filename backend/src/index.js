@@ -14,10 +14,15 @@ const server = http.createServer(app);
 initSocket(server);
 
 // ── Security ──────────────────────────────────────────────────────────────────
-// cors before helmet so preflight OPTIONS is handled correctly
-app.use(cors({ origin: true, methods: ['GET','POST','PATCH','DELETE','OPTIONS'], allowedHeaders: ['Content-Type','Authorization'], credentials: true }));
-app.options('*', cors());
-app.use(helmet({ crossOriginResourcePolicy: false }));
+// Manual CORS — must be first, before helmet, before everything
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
+  next();
+});
+app.use(helmet({ crossOriginResourcePolicy: false, contentSecurityPolicy: false }));
 
 // Stripe webhook needs raw body — must be before express.json()
 app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
