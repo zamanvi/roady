@@ -259,21 +259,24 @@ function handleSendCode(resend){
 }
 // ── DEV: skip OTP (remove before go-live) ───────────────────────────────────
 function devSkipOTP(){
-  // DEV: no backend call — fake token so UI flow works without DB
-  _token='dev-token-local';
-  _customerId=1;
-  localStorage.setItem('roady_token',_token);
-  localStorage.setItem('roady_cid',_customerId);
-  var phone=document.getElementById("phone-input").value||"Dev User";
-  var addr=document.getElementById("manual-addr").value;
-  document.getElementById("dispatch-phone").textContent=phone;
-  document.getElementById("mode-phone").textContent="Phone: "+phone;
-  document.getElementById("mode-loc").textContent=coords?"GPS: "+coords.lat.toFixed(4)+","+coords.lng.toFixed(4):addr||"Location: --";
-  document.getElementById("mode-media").textContent=mediaFile?"File: "+mediaFile.name:"No media attached";
-  document.getElementById("final-phone").textContent="Phone: "+phone;
-  if(coords)document.getElementById("final-loc").textContent="Location: "+coords.lat.toFixed(5)+","+coords.lng.toFixed(5);
-  else if(addr)document.getElementById("final-loc").textContent="Location: "+addr;
-  goTo('screen-dispatch');
+  api('/auth/customer/dev-login',{method:'POST',body:{}})
+    .then(function(res){
+      if(res.error){alert(res.error);return;}
+      _token=res.token;
+      _customerId=res.customer.id;
+      localStorage.setItem('roady_token',_token);
+      localStorage.setItem('roady_cid',_customerId);
+      var phone=document.getElementById("phone-input").value||"Dev User";
+      var addr=document.getElementById("manual-addr").value;
+      document.getElementById("dispatch-phone").textContent=phone;
+      document.getElementById("mode-phone").textContent="Phone: "+phone;
+      document.getElementById("mode-loc").textContent=coords?"GPS: "+coords.lat.toFixed(4)+","+coords.lng.toFixed(4):addr||"Location: --";
+      document.getElementById("mode-media").textContent=mediaFile?"File: "+mediaFile.name:"No media attached";
+      document.getElementById("final-phone").textContent="Phone: "+phone;
+      if(coords)document.getElementById("final-loc").textContent="Location: "+coords.lat.toFixed(5)+","+coords.lng.toFixed(5);
+      else if(addr)document.getElementById("final-loc").textContent="Location: "+addr;
+      goTo('screen-dispatch');
+    }).catch(function(){alert('Dev login failed');});
 }
 // ── Verify → create/login account → go to dispatch ─────────────────────────
 function handleVerify(){
