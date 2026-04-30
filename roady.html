@@ -152,37 +152,19 @@
       <div class="flex items-center gap-3"><div class="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center spin text-xs">&#x25CB;</div><span class="text-sm text-white font-medium">AI building your job profile...</span></div>
       <div class="flex items-center gap-3"><div class="w-6 h-6 bg-gray-700 rounded-full flex items-center justify-center text-xs text-gray-500">4</div><span class="text-sm text-gray-600">Matching nearest providers</span></div>
     </div>
-    <button onclick="goTo('screen-mode')" class="w-full py-4 rounded-2xl text-base font-black mb-3 transition active:scale-95" style="background:linear-gradient(135deg,#22c55e,#15803d);color:#fff;">Choose Your Plan &#x2192;</button>
-    <p class="text-xs text-gray-600 text-center"><button onclick="goTo('screen-mode')" class="text-blue-400 underline">Skip &rarr; go straight to mode select</button></p>
+    <button id="find-providers-btn" onclick="postJobAndFind()" class="w-full py-4 rounded-2xl text-base font-black mb-3 transition active:scale-95" style="background:linear-gradient(135deg,#22c55e,#15803d);color:#fff;">Find Best Providers &#x2192;</button>
+    <p class="text-xs text-gray-600 text-center">Roady finds 3 options — you pick best for you</p>
   </div></div>
   <div class="text-center text-xs text-gray-600 py-6">AI Powered &bull; Secure Payment &bull; Live Tracking</div>
 </div>
-<!-- ═══ SCREEN 4: URGENT vs BARGAIN ═══ -->
-<div id="screen-mode" class="screen">
-  <div class="p-4 flex justify-between items-center"><button onclick="goTo('screen-dispatch')" class="text-gray-400 text-sm">&larr;</button><div class="flex items-center gap-2"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="8" fill="#22c55e"/><path d="M4 20h2l1-4h14l1 4h2a1 1 0 000-2h-1l-1.5-5H8.5L7 18H6a1 1 0 000 2z" fill="white"/><circle cx="10" cy="21.5" r="2" fill="white"/><circle cx="22" cy="21.5" r="2" fill="white"/><path d="M20 14l3 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/><rect x="6" y="13" width="8" height="5" rx="1" fill="white" opacity="0.3"/><path d="M16 10v8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M13 10h6" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg><span class="text-xl font-bold tracking-tight">Roady</span></div><button onclick="openProfile(currentScreenId())" class="w-9 h-9 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition border-2 border-gray-600"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#9ca3af"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/></svg></button></div>
-  <div class="flex flex-col items-center px-6 flex-1"><div class="w-full max-w-md py-4">
-    <h2 class="text-2xl font-bold mb-1 text-center">How do you want help?</h2>
-    <p class="text-gray-400 text-sm text-center mb-6">Pick speed or savings — both are covered.</p>
-    <div class="flex gap-3 mb-5">
-      <div id="btn-urgent" class="mode-btn mode-urgent" onclick="selectMode('urgent')"><div class="text-2xl mb-1">&#x1F6A8;</div><div class="text-base font-bold">Urgent</div><div class="text-xs text-red-300 font-normal mt-1">Get help ASAP<br/>AI picks best match</div></div>
-      <div id="btn-bargain" class="mode-btn mode-bargain" onclick="selectMode('bargain')"><div class="text-2xl mb-1">&#x1F4B0;</div><div class="text-base font-bold">Bargain</div><div class="text-xs text-blue-300 font-normal mt-1">Providers compete<br/>You pick the winner</div></div>
-    </div>
-    <div id="mode-desc-urgent" class="hidden bg-red-900 bg-opacity-40 border border-red-800 p-4 rounded-2xl mb-5 text-sm text-red-200"><div class="font-bold mb-1">&#x1F6A8; Urgent — fastest dispatch</div>AI assigns the nearest highest-rated provider instantly. Best for accidents, highway breakdowns, or late-night emergencies.</div>
-    <div id="mode-desc-bargain" class="hidden bg-blue-900 bg-opacity-40 border border-blue-800 p-4 rounded-2xl mb-5 text-sm text-blue-200"><div class="font-bold mb-1">&#x1F4E1; Bargain — you choose</div>Providers within 30 miles see your job and bid. Pick the fastest, cheapest, or best rated. Your call.</div>
-    <div class="bg-gray-900 p-4 rounded-2xl mb-5 text-sm text-gray-300 space-y-1.5"><div class="text-xs text-gray-500 mb-2 uppercase tracking-wide font-semibold">Your Request</div><div id="mode-loc" class="truncate">&#x1F4CD; Location loading...</div><div id="mode-phone">&#x1F4DE; --</div><div id="mode-media">&#x1F4F8; No photo</div></div>
-    <button id="mode-continue-btn" onclick="continueMode()" disabled class="bg-gray-700 text-gray-500 w-full py-5 rounded-2xl text-lg font-semibold transition">Tap a mode to continue</button>
-  </div></div>
-  <div class="text-center text-xs text-gray-600 py-6">AI Powered &bull; Real-time Dispatch &bull; Secure Payment</div>
-</div>
 <!-- ═══ SCREEN 5: PROVIDERS ═══ -->
 <div id="screen-providers" class="screen">
-  <div class="p-4 flex justify-between items-center"><button onclick="goTo('screen-mode')" class="text-gray-400 text-sm">&larr;</button><div class="flex items-center gap-2"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="8" fill="#22c55e"/><path d="M4 20h2l1-4h14l1 4h2a1 1 0 000-2h-1l-1.5-5H8.5L7 18H6a1 1 0 000 2z" fill="white"/><circle cx="10" cy="21.5" r="2" fill="white"/><circle cx="22" cy="21.5" r="2" fill="white"/><path d="M20 14l3 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/><rect x="6" y="13" width="8" height="5" rx="1" fill="white" opacity="0.3"/><path d="M16 10v8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M13 10h6" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg><span class="text-xl font-bold tracking-tight">Roady</span></div><span class="text-xs text-gray-400">Choose Provider</span></div>
+  <div class="p-4 flex justify-between items-center"><button onclick="goTo('screen-dispatch')" class="text-gray-400 text-sm">&larr;</button><div class="flex items-center gap-2"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="8" fill="#22c55e"/><path d="M4 20h2l1-4h14l1 4h2a1 1 0 000-2h-1l-1.5-5H8.5L7 18H6a1 1 0 000 2z" fill="white"/><circle cx="10" cy="21.5" r="2" fill="white"/><circle cx="22" cy="21.5" r="2" fill="white"/><path d="M20 14l3 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/><rect x="6" y="13" width="8" height="5" rx="1" fill="white" opacity="0.3"/><path d="M16 10v8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M13 10h6" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg><span class="text-xl font-bold tracking-tight">Roady</span></div><span class="text-xs text-gray-400">Choose Provider</span></div>
   <div class="flex flex-col items-center px-6 flex-1 overflow-y-auto"><div class="w-full max-w-md py-4">
     <h2 class="text-2xl font-bold mb-1 text-center">Your Providers</h2>
-    <p id="providers-subtitle" class="text-gray-400 text-sm text-center mb-3">Best matches near you — ready to go</p>
+    <p id="providers-subtitle" class="text-gray-400 text-sm text-center mb-3">Roady found 3 options — pick best for you</p>
     <div id="ai-analysis-card" class="hidden bg-gray-900 border border-gray-700 rounded-2xl p-4 mb-4"></div>
-    <div id="urgent-assign" class="hidden"><div class="bg-red-900 bg-opacity-30 border border-red-700 rounded-2xl p-5 mb-4"><div class="flex items-center gap-2 mb-3"><span class="text-xs bg-red-600 text-white px-2 py-0.5 rounded-full font-bold blink">AUTO-ASSIGNED</span><span class="text-xs text-gray-400">Urgent Mode</span></div><div class="flex items-center gap-4 mb-4"><div class="w-14 h-14 bg-gray-700 rounded-full flex items-center justify-center text-2xl">&#x1F69B;</div><div><div class="font-bold text-lg">Mikes Towing Co.</div><div class="flex items-center gap-1 text-yellow-400 text-sm">&#x2B50;&#x2B50;&#x2B50;&#x2B50;&#x2B50; <span class="text-gray-400 text-xs ml-1">(4.9 &bull; 312 jobs)</span></div><div class="text-green-400 text-sm font-semibold mt-1">&#x1F4CD; 1.2 miles away</div></div></div><div class="grid grid-cols-3 gap-2 text-center text-xs mb-4"><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold text-base">8 min</div><div class="text-gray-400">ETA</div></div><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold text-base">$95</div><div class="text-gray-400">Price</div></div><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold text-base">4.9&#x2B50;</div><div class="text-gray-400">Rating</div></div></div><div class="text-xs text-gray-500 mb-4">&#x1F512; Payment held securely — released only when you say done</div><button onclick="confirmProvider('Mikes Towing Co.','8 min','$95','4.9')" class="w-full py-4 rounded-xl font-black text-base transition active:scale-95" style="background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;">&#x1F6A8; Dispatch Now &rarr;</button></div></div>
-    <div id="bargain-options" class="hidden space-y-4">
+    <div id="bargain-options" class="space-y-4">
       <div id="card-fastest" class="bg-gray-900 border border-gray-800 rounded-2xl p-4 cursor-pointer transition" onclick="selectCard('fastest')"><div class="flex items-center justify-between mb-3"><span class="text-xs bg-yellow-500 text-black px-2 py-0.5 rounded-full font-bold">&#x26A1; FASTEST</span><span class="text-xs text-gray-500">2.1 mi</span></div><div class="flex items-center gap-3 mb-3"><div class="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center text-xl">&#x1F69B;</div><div><div class="font-semibold">QuickTow Express</div><div class="text-yellow-400 text-xs">&#x2B50;&#x2B50;&#x2B50;&#x2B50; 4.6 <span class="text-gray-500">(189 jobs)</span></div></div></div><div class="grid grid-cols-3 gap-2 text-center text-xs"><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold">11 min</div><div class="text-gray-400">ETA</div></div><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold">$110</div><div class="text-gray-400">Price</div></div><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold">4.6&#x2B50;</div><div class="text-gray-400">Rating</div></div></div></div>
       <div id="card-cheapest" class="bg-gray-900 border border-gray-800 rounded-2xl p-4 cursor-pointer transition" onclick="selectCard('cheapest')"><div class="flex items-center justify-between mb-3"><span class="text-xs bg-green-500 text-black px-2 py-0.5 rounded-full font-bold">&#x1F4B0; LOWEST PRICE</span><span class="text-xs text-gray-500">4.8 mi</span></div><div class="flex items-center gap-3 mb-3"><div class="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center text-xl">&#x1F69B;</div><div><div class="font-semibold">Budget Tow Houston</div><div class="text-yellow-400 text-xs">&#x2B50;&#x2B50;&#x2B50;&#x2B50; 4.3 <span class="text-gray-500">(97 jobs)</span></div></div></div><div class="grid grid-cols-3 gap-2 text-center text-xs"><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold">24 min</div><div class="text-gray-400">ETA</div></div><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold">$72</div><div class="text-gray-400">Price</div></div><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold">4.3&#x2B50;</div><div class="text-gray-400">Rating</div></div></div></div>
       <div id="card-rated" class="bg-gray-900 border border-gray-800 rounded-2xl p-4 cursor-pointer transition" onclick="selectCard('rated')"><div class="flex items-center justify-between mb-3"><span class="text-xs bg-purple-500 text-white px-2 py-0.5 rounded-full font-bold">&#x2B50; BEST RATED</span><span class="text-xs text-gray-500">3.3 mi</span></div><div class="flex items-center gap-3 mb-3"><div class="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center text-xl">&#x1F69B;</div><div><div class="font-semibold">Elite Roadside Pro</div><div class="text-yellow-400 text-xs">&#x2B50;&#x2B50;&#x2B50;&#x2B50;&#x2B50; 4.9 <span class="text-gray-500">(541 jobs)</span></div></div></div><div class="grid grid-cols-3 gap-2 text-center text-xs"><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold">18 min</div><div class="text-gray-400">ETA</div></div><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold">$98</div><div class="text-gray-400">Price</div></div><div class="bg-gray-800 p-2 rounded-xl"><div class="text-white font-bold">4.9&#x2B50;</div><div class="text-gray-400">Rating</div></div></div></div>
@@ -394,7 +376,7 @@ function api(path, opts) {
 var sentCode="", coords=null, mediaFile=null, mediaPreviewUrl=null;
 var _resendTimer=null;
 var watchId=null, isLiveTracking=false;
-var selectedMode=null, selectedCard=null, currentProvider=null;
+var selectedCard=null, currentProvider=null;
 var providerData={
   fastest:{name:"QuickTow Express",eta:"11 min",price:"$110",rating:"4.6 stars"},
   cheapest:{name:"Budget Tow Houston",eta:"24 min",price:"$72",rating:"4.3 stars"},
@@ -656,8 +638,40 @@ function handleVerify(){
       showError(errEl,"Network error — try again.");
     });
 }
-// ── Mode selection ─────────────────────────────────────────────────────────
-function selectMode(mode){selectedMode=mode;["urgent","bargain"].forEach(function(m){document.getElementById("btn-"+m).classList.remove("selected");});document.getElementById("mode-desc-urgent").classList.add("hidden");document.getElementById("mode-desc-bargain").classList.add("hidden");document.getElementById("btn-"+mode).classList.add("selected");document.getElementById("mode-desc-"+mode).classList.remove("hidden");var btn=document.getElementById("mode-continue-btn");btn.disabled=false;btn.className=(mode==="urgent")?"bg-red-600 hover:bg-red-500 w-full py-5 rounded-2xl text-lg font-semibold transition":"bg-blue-600 hover:bg-blue-500 w-full py-5 rounded-2xl text-lg font-semibold transition";btn.textContent=(mode==="urgent")?"Dispatch Immediately →":"Find Best Providers →";}
+// ── Find providers ──────────────────────────────────────────────────────────
+function postJobAndFind(){
+  var btn=document.getElementById("find-providers-btn");
+  setBtn(btn,true,"Finding best providers...");
+  var addr=document.getElementById("manual-addr").value;
+  var locText=coords?"GPS: "+coords.lat.toFixed(5)+","+coords.lng.toFixed(5):addr||"Unknown";
+
+  function postJob(photoBase64){
+    api('/jobs',{method:'POST',body:{
+      mode:'bargain',
+      locationText:locText,
+      locationLat:coords?coords.lat:null,
+      locationLng:coords?coords.lng:null,
+      photoBase64:photoBase64||null,
+    }}).then(function(res){
+      setBtn(btn,false,"Find Best Providers →");
+      if(res.error){alert("Error: "+res.error);return;}
+      _currentJobId=res.job?res.job.id:null;
+      if(_currentJobId)sessionStorage.setItem('roady_jid',_currentJobId);
+      if(res.job&&res.job.ai){renderAICard(res.job.ai);}
+      goTo("screen-providers");
+    }).catch(function(){
+      setBtn(btn,false,"Find Best Providers →");
+      _currentJobId=null;
+      goTo("screen-providers");
+    });
+  }
+
+  if(mediaFile&&mediaFile.type.startsWith('image')){
+    compressPhoto(mediaFile,function(b64){postJob(b64);});
+  } else {
+    postJob(null);
+  }
+}
 function compressPhoto(file, callback) {
   if(!file||!file.type.startsWith('image')){callback(null);return;}
   var img=new Image(), url=URL.createObjectURL(file);
@@ -672,47 +686,6 @@ function compressPhoto(file, callback) {
   };
   img.onerror=function(){URL.revokeObjectURL(url);callback(null);};
   img.src=url;
-}
-
-function continueMode(){
-  if(!selectedMode)return;
-  var btn=document.getElementById("mode-continue-btn");
-  setBtn(btn,true,"🤖 AI analyzing your situation...");
-  var addr=document.getElementById("manual-addr").value;
-  var locText=coords?"GPS: "+coords.lat.toFixed(5)+","+coords.lng.toFixed(5):addr||"Unknown";
-
-  function postJob(photoBase64){
-    api('/jobs',{method:'POST',body:{
-      mode:selectedMode,
-      locationText:locText,
-      locationLat:coords?coords.lat:null,
-      locationLng:coords?coords.lng:null,
-      photoBase64:photoBase64||null,
-    }}).then(function(res){
-      setBtn(btn,false,selectedMode==="urgent"?"Dispatch Immediately":"Find Best Providers");
-      if(res.error){alert("Error: "+res.error);return;}
-      _currentJobId=res.job?res.job.id:null;
-      if(_currentJobId)sessionStorage.setItem('roady_jid',_currentJobId);
-      // Show AI analysis card if available
-      if(res.job&&res.job.ai){renderAICard(res.job.ai);}
-      document.getElementById("urgent-assign").classList.toggle("hidden",selectedMode!=="urgent");
-      document.getElementById("bargain-options").classList.toggle("hidden",selectedMode!=="bargain");
-      document.getElementById("providers-subtitle").textContent=(selectedMode==="urgent")?"AI auto-assigned best available provider":"3 best bids matched for you";
-      goTo("screen-providers");
-    }).catch(function(){
-      setBtn(btn,false,selectedMode==="urgent"?"Dispatch Immediately":"Find Best Providers");
-      _currentJobId=null;
-      document.getElementById("urgent-assign").classList.toggle("hidden",selectedMode!=="urgent");
-      document.getElementById("bargain-options").classList.toggle("hidden",selectedMode!=="bargain");
-      goTo("screen-providers");
-    });
-  }
-
-  if(mediaFile&&mediaFile.type.startsWith('image')){
-    compressPhoto(mediaFile,function(b64){postJob(b64);});
-  } else {
-    postJob(null);
-  }
 }
 
 function renderAICard(ai){
@@ -980,9 +953,9 @@ function saveProfile(){var name=document.getElementById("profile-name").value;do
 function currentScreenId(){var active=document.querySelector(".screen.active");return active?active.id:"screen-dispatch";}
 
 // ── Reset full app ──────────────────────────────────────────────────────────
-function resetApp(){sentCode="";coords=null;mediaFile=null;mediaPreviewUrl=null;watchId=null;isLiveTracking=false;selectedMode=null;selectedCard=null;currentProvider=null;if(_etaInterval){clearInterval(_etaInterval);_etaInterval=null;}stopTrackingSocket();document.getElementById("phone-input").value="";document.getElementById("manual-addr").value="";document.getElementById("code-input").value="";document.getElementById("preview-img").classList.add("hidden");document.getElementById("preview-vid").classList.add("hidden");setLocBadge("Detecting...","#9ca3af");autoDetectLocation();goTo("screen-capture");}
+function resetApp(){sentCode="";coords=null;mediaFile=null;mediaPreviewUrl=null;watchId=null;isLiveTracking=false;selectedCard=null;currentProvider=null;if(_etaInterval){clearInterval(_etaInterval);_etaInterval=null;}stopTrackingSocket();document.getElementById("phone-input").value="";document.getElementById("manual-addr").value="";document.getElementById("code-input").value="";document.getElementById("preview-img").classList.add("hidden");document.getElementById("preview-vid").classList.add("hidden");setLocBadge("Detecting...","#9ca3af");autoDetectLocation();goTo("screen-capture");}
 // ── Skip verify (DEV ONLY — remove before production) ──────────────────────
-function skipVerify(){var phone=document.getElementById("phone-input").value,addr=document.getElementById("manual-addr").value;document.getElementById("dispatch-phone").textContent=phone;document.getElementById("mode-phone").textContent=phone?"Phone: "+phone:"--";document.getElementById("mode-loc").textContent=coords?"GPS: "+coords.lat.toFixed(4)+", "+coords.lng.toFixed(4):addr?addr:"Location: --";document.getElementById("mode-media").textContent=mediaFile?"File: "+mediaFile.name:"No media attached";if(coords){document.getElementById("final-loc").textContent="Location: "+coords.lat.toFixed(5)+", "+coords.lng.toFixed(5);}else if(addr){document.getElementById("final-loc").textContent="Location: "+addr;}document.getElementById("final-phone").textContent=phone?"Phone: "+phone:"";goTo("screen-dispatch");}
+function skipVerify(){var phone=document.getElementById("phone-input").value,addr=document.getElementById("manual-addr").value;document.getElementById("dispatch-phone").textContent=phone;if(coords){document.getElementById("final-loc").textContent="Location: "+coords.lat.toFixed(5)+", "+coords.lng.toFixed(5);}else if(addr){document.getElementById("final-loc").textContent="Location: "+addr;}document.getElementById("final-phone").textContent=phone?"Phone: "+phone:"";goTo("screen-dispatch");}
 
 // ── Affiliate ──────────────────────────────────────────────────────────────
 function genRefCode(seed){var c="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";var h=0;for(var i=0;i<seed.length;i++){h=(Math.imul(31,h)+seed.charCodeAt(i))|0;}var r="";for(var j=0;j<6;j++){r+=c[Math.abs((h>>j*4)&0xf)%c.length];}return r;}
