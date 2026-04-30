@@ -1,0 +1,21 @@
+{
+  "name": "Roady - AI Towing",
+  "short_name": "Roady",
+  "description": "AI-powered roadside assistance. Stuck? We move.",
+  "start_url": "/roady.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#22c55e",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%2322c55e'/><path d='M4 20h2l1-4h14l1 4h2a1 1 0 000-2h-1l-1.5-5H8.5L7 18H6a1 1 0 000 2z' fill='white'/><circle cx='10' cy='21.5' r='2' fill='white'/><circle cx='22' cy='21.5' r='2' fill='white'/></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["utilities", "travel"],
+  "lang": "en-US",
+  "dir": "ltr"
+}
