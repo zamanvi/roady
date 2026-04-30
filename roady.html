@@ -541,9 +541,6 @@ function handleSendCode(resend){
     handleSendCode._locWarned=false;
     var locText=coords?"GPS: "+coords.lat.toFixed(4)+","+coords.lng.toFixed(4):addr||"--";
     document.getElementById("dispatch-phone").textContent="Returning user";
-    document.getElementById("mode-phone").textContent="📱 Verified account";
-    document.getElementById("mode-loc").textContent="📍 "+locText;
-    document.getElementById("mode-media").textContent=mediaFile?"📸 "+mediaFile.name:"No photo";
     document.getElementById("final-loc").textContent=locText;
     goTo("screen-dispatch");
     return;
@@ -592,9 +589,6 @@ function devSkipOTP(){
       var phone=document.getElementById("phone-input").value||"Dev User";
       var addr=document.getElementById("manual-addr").value;
       document.getElementById("dispatch-phone").textContent=phone;
-      document.getElementById("mode-phone").textContent="Phone: "+phone;
-      document.getElementById("mode-loc").textContent=coords?"GPS: "+coords.lat.toFixed(4)+","+coords.lng.toFixed(4):addr||"Location: --";
-      document.getElementById("mode-media").textContent=mediaFile?"File: "+mediaFile.name:"No media attached";
       document.getElementById("final-phone").textContent="Phone: "+phone;
       if(coords)document.getElementById("final-loc").textContent="Location: "+coords.lat.toFixed(5)+","+coords.lng.toFixed(5);
       else if(addr)document.getElementById("final-loc").textContent="Location: "+addr;
