@@ -39,8 +39,9 @@
     .progress-dot.done{background:#22c55e;}
     .progress-dot.active{background:#2563eb;}
     #track-map{height:220px;border-radius:16px;overflow:hidden;background:#1a1a2e;}
-    /* Dark map tiles override */
-    .leaflet-tile{filter:brightness(0.85) contrast(1.1) saturate(0.7) hue-rotate(180deg) invert(1);}
+    /* CartoDB dark tiles — no filter needed */
+    @keyframes truckPulse{0%,100%{filter:drop-shadow(0 0 4px rgba(34,197,94,.8))}50%{filter:drop-shadow(0 0 12px rgba(34,197,94,1))}}
+    .truck-pulse{animation:truckPulse 1.5s ease-in-out infinite;}
     /* Responsive */
     @media(min-width:480px){#track-map{height:260px;}}
     @media(min-width:768px){
@@ -189,16 +190,167 @@
 </div>
 <!-- ═══ SCREEN 6: LIVE TRACKING ═══ -->
 <div id="screen-tracking" class="screen">
-  <div class="p-4 flex justify-between items-center"><div class="flex items-center gap-2"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="8" fill="#22c55e"/><path d="M4 20h2l1-4h14l1 4h2a1 1 0 000-2h-1l-1.5-5H8.5L7 18H6a1 1 0 000 2z" fill="white"/><circle cx="10" cy="21.5" r="2" fill="white"/><circle cx="22" cy="21.5" r="2" fill="white"/><path d="M20 14l3 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/><rect x="6" y="13" width="8" height="5" rx="1" fill="white" opacity="0.3"/><path d="M16 10v8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M13 10h6" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg><span class="text-xl font-bold tracking-tight">Roady</span></div><div class="flex items-center gap-2"><span class="text-xs bg-green-500 text-black px-2 py-0.5 rounded-full font-bold blink">ON THE WAY</span><button onclick="openProfile(currentScreenId())" class="w-9 h-9 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition border-2 border-gray-600"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#9ca3af"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/></svg></button></div></div>
-  <div class="flex flex-col items-center px-6 flex-1 overflow-y-auto"><div class="w-full max-w-md py-4">
-    <div class="bg-gray-900 rounded-2xl p-6 mb-4 text-center"><div class="text-5xl font-black text-green-400 mb-1" id="track-eta">--</div><div class="text-gray-400 text-sm mb-4">Estimated arrival</div><div class="bg-gray-800 h-2 rounded-full overflow-hidden"><div id="eta-bar" class="bg-green-500 h-2 rounded-full transition-all duration-1000" style="width:5%"></div></div></div>
-    <div class="bg-gray-900 rounded-2xl p-4 mb-4"><div class="text-xs text-gray-500 uppercase tracking-wide mb-3">Your Driver</div><div class="flex items-center gap-4 mb-4"><div class="w-14 h-14 bg-gray-700 rounded-full flex items-center justify-center text-2xl">&#x1F69B;</div><div class="flex-1"><div class="font-bold" id="track-name">--</div><div class="text-yellow-400 text-xs" id="track-rating">--</div><div class="text-green-400 text-xs mt-0.5" id="track-price">--</div></div><a id="track-call-btn" href="tel:+15551234" class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-xl text-sm font-semibold transition">&#x1F4DE; Call</a></div><div id="track-map" class="mb-2 rounded-2xl overflow-hidden" style="height:260px;"></div>
-<a id="track-map-link" href="https://maps.google.com" target="_blank" class="block text-center text-xs text-blue-400 underline mb-2">Open in Google Maps</a></div>
-    <div class="bg-gray-900 rounded-2xl p-4 mb-4"><div class="text-xs text-gray-500 uppercase tracking-wide mb-3">Payment</div><div class="space-y-2 text-sm"><div class="flex items-center justify-between"><span class="text-gray-300">&#x1F512; Held</span><span class="text-yellow-400 font-medium" id="track-price-esc">--</span></div><div class="flex items-center justify-between"><span class="text-gray-300">Status</span><span class="text-yellow-300 text-xs bg-yellow-900 px-2 py-0.5 rounded-full">Secured until complete</span></div><div class="flex items-center justify-between"><span class="text-gray-300">Release</span><span class="text-gray-400 text-xs">You tap "Done" below</span></div></div></div>
-    <div class="bg-gray-900 rounded-2xl p-4 mb-6"><div class="text-xs text-gray-500 uppercase tracking-wide mb-3">Need Help?</div><div class="grid grid-cols-2 gap-2"><button class="bg-gray-800 hover:bg-gray-700 py-3 rounded-xl text-xs font-medium transition">&#x26A0;&#xFE0F; Report a Problem</button><button class="bg-gray-800 hover:bg-gray-700 py-3 rounded-xl text-xs font-medium transition">&#x1F4F8; Add Photo Evidence</button></div></div>
-    <button onclick="goTo('screen-complete')" class="w-full py-5 rounded-2xl text-lg font-black transition active:scale-95" style="background:linear-gradient(135deg,#22c55e,#15803d);color:#fff;">&#x2705; Done — Release Payment</button>
+  <!-- Header -->
+  <div class="p-4 flex justify-between items-center">
+    <div class="flex items-center gap-2">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="8" fill="#22c55e"/><path d="M4 20h2l1-4h14l1 4h2a1 1 0 000-2h-1l-1.5-5H8.5L7 18H6a1 1 0 000 2z" fill="white"/><circle cx="10" cy="21.5" r="2" fill="white"/><circle cx="22" cy="21.5" r="2" fill="white"/><path d="M20 14l3 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/><rect x="6" y="13" width="8" height="5" rx="1" fill="white" opacity="0.3"/><path d="M16 10v8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M13 10h6" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span class="text-xl font-bold tracking-tight">Roady</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="flex items-center gap-1 text-xs bg-green-500 text-black px-2 py-0.5 rounded-full font-bold">
+        <span class="w-1.5 h-1.5 bg-black rounded-full blink inline-block"></span>ON THE WAY
+      </span>
+      <button onclick="openProfile(currentScreenId())" class="w-9 h-9 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition border-2 border-gray-600">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#9ca3af"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="flex flex-col items-center px-4 flex-1 overflow-y-auto"><div class="w-full max-w-md py-2 space-y-3">
+
+    <!-- ETA Card -->
+    <div class="rounded-2xl p-5 text-center relative overflow-hidden" style="background:linear-gradient(135deg,#0f2213,#111827);border:1px solid #1a3a20;">
+      <div class="flex items-center justify-center gap-2 mb-1">
+        <span class="w-2 h-2 bg-green-400 rounded-full blink"></span>
+        <span class="text-xs text-green-400 font-semibold uppercase tracking-widest">Live ETA</span>
+      </div>
+      <div class="text-6xl font-black text-green-400 mb-1 tabular-nums" id="track-eta">--</div>
+      <div class="text-gray-400 text-sm mb-1">minutes away</div>
+      <div class="text-xs text-green-500 font-semibold mb-3" id="track-dist-display">Locating your driver...</div>
+      <div class="bg-gray-800 h-2.5 rounded-full overflow-hidden">
+        <div id="eta-bar" class="h-2.5 rounded-full transition-all duration-1000" style="width:5%;background:linear-gradient(90deg,#22c55e,#86efac);"></div>
+      </div>
+    </div>
+
+    <!-- Live status timeline -->
+    <div class="rounded-2xl p-4" style="background:#0a0a0a;border:1px solid #1a3a20;">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="w-1.5 h-1.5 rounded-full bg-green-400 blink inline-block"></span>
+        <span class="text-xs text-green-400 font-bold uppercase tracking-widest">Live Updates</span>
+      </div>
+      <div class="space-y-3" id="status-timeline">
+        <div class="flex items-center gap-3" id="tl-accepted">
+          <div class="w-6 h-6 rounded-full bg-green-700 flex items-center justify-center text-xs flex-shrink-0">&#x2713;</div>
+          <span class="text-sm text-gray-300 flex-1">Driver accepted your job</span>
+          <span class="text-xs text-gray-600" id="tl-t1"></span>
+        </div>
+        <div class="flex items-center gap-3" id="tl-enroute">
+          <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-xs flex-shrink-0 blink">&#x1F69B;</div>
+          <span class="text-sm text-white font-semibold flex-1">On the way to you now</span>
+          <span class="text-xs text-gray-600" id="tl-t2"></span>
+        </div>
+        <div class="flex items-center gap-3 opacity-35" id="tl-nearby">
+          <div class="w-6 h-6 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-xs flex-shrink-0">&#x1F4CD;</div>
+          <span class="text-sm text-gray-500 flex-1">Almost there — &lt;2 min</span>
+          <span class="text-xs text-gray-600" id="tl-t3"></span>
+        </div>
+        <div class="flex items-center gap-3 opacity-35" id="tl-arrived">
+          <div class="w-6 h-6 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-xs flex-shrink-0">&#x2713;</div>
+          <span class="text-sm text-gray-500 flex-1">Arrived at your location</span>
+          <span class="text-xs text-gray-600" id="tl-t4"></span>
+        </div>
+      </div>
+      <div class="mt-3 pt-3 border-t border-gray-900 text-center">
+        <span class="text-xs text-gray-600">&#x1F4F1; Driver sees your exact location in real time</span>
+      </div>
+    </div>
+
+    <!-- Provider Card -->
+    <div class="bg-gray-900 rounded-2xl p-4" style="border:1px solid #1f2937;">
+      <div class="text-xs text-gray-500 uppercase tracking-widest mb-3 font-semibold">Your Driver</div>
+      <div class="flex items-center gap-3 mb-4">
+        <div class="relative">
+          <div class="w-14 h-14 rounded-full flex items-center justify-center text-2xl" style="background:linear-gradient(135deg,#1a3a20,#14532d);border:2px solid #22c55e;">&#x1F69B;</div>
+          <span class="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-gray-900 flex items-center justify-center" title="Verified"></span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="font-bold text-white truncate" id="track-name">--</div>
+          <div class="text-yellow-400 text-xs mt-0.5" id="track-rating">--</div>
+          <div class="text-green-400 text-xs mt-0.5 font-semibold" id="track-price">--</div>
+        </div>
+        <a id="track-call-btn" href="tel:+15551234" class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold transition active:scale-95" style="background:linear-gradient(135deg,#22c55e,#15803d);color:#fff;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z" fill="white"/></svg>
+          Call
+        </a>
+      </div>
+      <div id="track-map" class="rounded-xl overflow-hidden mb-2" style="height:280px;"></div>
+      <a id="track-map-link" href="https://maps.google.com" target="_blank" class="flex items-center justify-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition py-1">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#60a5fa"/></svg>
+        Open in Google Maps
+      </a>
+    </div>
+
+    <!-- Payment (Escrow) Card -->
+    <div class="bg-gray-900 rounded-2xl p-4" style="border:1px solid #1f2937;">
+      <div class="flex items-center justify-between mb-3">
+        <div class="text-xs text-gray-500 uppercase tracking-widest font-semibold">Payment</div>
+        <span class="text-xs text-green-400 font-semibold flex items-center gap-1">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" fill="#22c55e"/><path d="M7 11V7a5 5 0 0110 0v4" stroke="#22c55e" stroke-width="2" stroke-linecap="round"/></svg>
+          Protected
+        </span>
+      </div>
+      <div class="space-y-2.5 text-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-gray-400">&#x1F512; Held Amount</span>
+          <span class="text-yellow-400 font-bold text-base" id="track-price-esc">--</span>
+        </div>
+        <div class="h-px bg-gray-800"></div>
+        <div class="flex items-center justify-between">
+          <span class="text-gray-400">Status</span>
+          <span class="text-yellow-300 text-xs font-semibold px-2.5 py-1 rounded-full" style="background:#422006;">Held until complete</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-gray-400">Release</span>
+          <span class="text-gray-400 text-xs">After you confirm service</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Safety & Dispute Card -->
+    <div class="bg-gray-900 rounded-2xl p-4" style="border:1px solid #1f2937;">
+      <div class="text-xs text-gray-500 uppercase tracking-widest mb-3 font-semibold">Safety &amp; Dispute</div>
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="reportIssue()" class="flex flex-col items-center gap-1.5 py-3.5 rounded-xl text-xs font-semibold transition active:scale-95 hover:bg-yellow-900/40" style="background:#2a1f00;border:1px solid #78350f;color:#fbbf24;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 19h20L12 2z" fill="#fbbf24" opacity=".15"/><path d="M12 2L2 19h20L12 2z" stroke="#fbbf24" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 9v4M12 16v1" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/></svg>
+          Report Issue
+        </button>
+        <button onclick="uploadEvidence()" class="flex flex-col items-center gap-1.5 py-3.5 rounded-xl text-xs font-semibold transition active:scale-95 hover:bg-blue-900/40" style="background:#0a1628;border:1px solid #1e3a5f;color:#60a5fa;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="14" rx="2" fill="#60a5fa" opacity=".15"/><rect x="3" y="6" width="18" height="14" rx="2" stroke="#60a5fa" stroke-width="1.5"/><circle cx="12" cy="13" r="3" stroke="#60a5fa" stroke-width="1.5"/><path d="M8 6l1-2h6l1 2" stroke="#60a5fa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Upload Evidence
+        </button>
+      </div>
+    </div>
+
+    <!-- Release Payment CTA -->
+    <button onclick="confirmReleasePayment()" class="w-full py-5 rounded-2xl text-lg font-black transition active:scale-95 shadow-lg" style="background:linear-gradient(135deg,#22c55e,#15803d);color:#fff;box-shadow:0 4px 24px rgba(34,197,94,0.3);">
+      &#x2705; Service Complete — Release Payment
+    </button>
+
   </div></div>
-  <div class="text-center text-xs text-gray-600 py-6">Stuck? We move. &bull; Escrow Protected &bull; Dispute Support</div>
+
+  <!-- Payment Release Confirmation Modal -->
+  <div id="release-confirm-modal" class="hidden fixed inset-0 z-50 flex items-end justify-center" style="background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);">
+    <div class="w-full max-w-md bg-gray-900 rounded-t-3xl p-6 pb-8" style="border-top:1px solid #1f2937;">
+      <div class="w-10 h-1 bg-gray-700 rounded-full mx-auto mb-5"></div>
+      <div class="text-center mb-5">
+        <div class="text-4xl mb-3">&#x1F512;</div>
+        <h3 class="text-lg font-black text-white mb-1">Release Payment?</h3>
+        <p class="text-gray-400 text-sm">This confirms service was completed.<br>Payment will be sent to provider immediately.</p>
+      </div>
+      <div class="bg-gray-800 rounded-xl p-3 mb-5 flex items-center justify-between text-sm">
+        <span class="text-gray-400">Amount to release</span>
+        <span class="text-yellow-400 font-bold" id="modal-release-amount">--</span>
+      </div>
+      <button onclick="doReleasePayment()" class="w-full py-4 rounded-2xl font-black text-base mb-3 transition active:scale-95" style="background:linear-gradient(135deg,#22c55e,#15803d);color:#fff;">
+        &#x2705; Yes, Release Payment
+      </button>
+      <button onclick="closeReleaseModal()" class="w-full py-3 rounded-2xl font-semibold text-sm text-gray-400 bg-gray-800 hover:bg-gray-700 transition">
+        Cancel — Not Done Yet
+      </button>
+    </div>
+  </div>
+
+  <div class="text-center text-xs text-gray-600 py-4">Escrow Protected &bull; AI Verified &bull; Dispute Support</div>
 </div>
 <!-- ═══ SCREEN 7: COMPLETE + REVIEW ═══ -->
 <div id="screen-complete" class="screen">
@@ -247,6 +399,17 @@ var providerData={
 };
 // ── Navigation ─────────────────────────────────────────────────────────────
 function goTo(id){document.querySelectorAll(".screen").forEach(function(s){s.classList.remove("active");});document.getElementById(id).classList.add("active");window.scrollTo(0,0);}
+// ── Release payment modal ──────────────────────────────────────────────────
+function confirmReleasePayment(){
+  var amt=document.getElementById('track-price-esc').textContent||'--';
+  document.getElementById('modal-release-amount').textContent=amt;
+  document.getElementById('release-confirm-modal').classList.remove('hidden');
+}
+function closeReleaseModal(){document.getElementById('release-confirm-modal').classList.add('hidden');}
+function doReleasePayment(){closeReleaseModal();goTo('screen-complete');}
+// ── Safety buttons ─────────────────────────────────────────────────────────
+function reportIssue(){alert('Issue reported. Our support team will contact you within 5 minutes.');}
+function uploadEvidence(){document.getElementById('media-input')&&document.getElementById('media-input').click();}
 // ── Phone format ───────────────────────────────────────────────────────────
 document.getElementById("phone-input").addEventListener("input",function(){var d=this.value.replace(/\D/g,"").slice(0,10),f=d;if(d.length>6)f="("+d.slice(0,3)+") "+d.slice(3,6)+"-"+d.slice(6);else if(d.length>3)f="("+d.slice(0,3)+") "+d.slice(3);this.value=f;});
 // ── Code input digits only ─────────────────────────────────────────────────
@@ -593,12 +756,55 @@ function initTrackingMap(){
   if(_trackMap){_trackMap.invalidateSize();if(coords)_trackMap.setView(center,14);return;}
   _trackMap=L.map('track-map',{zoomControl:false,attributionControl:false}).setView(center,14);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19,subdomains:'abcd'}).addTo(_trackMap);
-  _customerIcon=L.divIcon({html:'<div style="background:#3b82f6;width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.6)"></div>',iconSize:[16,16],iconAnchor:[8,8],className:''});
-  _providerIcon=L.divIcon({html:'<div style="font-size:26px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))">🚛</div>',iconSize:[32,32],iconAnchor:[16,16],className:''});
-  if(coords){_customerMarker=L.marker([coords.lat,coords.lng],{icon:_customerIcon}).addTo(_trackMap).bindPopup('Your location');}
+  // Customer: blue pulsing dot
+  _customerIcon=L.divIcon({
+    html:'<div style="position:relative;width:20px;height:20px;">'
+      +'<div style="position:absolute;inset:0;background:rgba(59,130,246,.35);border-radius:50%;animation:ping 1.5s cubic-bezier(0,0,.2,1) infinite;"></div>'
+      +'<div style="position:absolute;top:2px;left:2px;width:16px;height:16px;background:#3b82f6;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.6);"></div>'
+      +'</div>',
+    iconSize:[20,20],iconAnchor:[10,10],className:''
+  });
+  // Provider: pulsing green truck
+  _providerIcon=L.divIcon({
+    html:'<div class="truck-pulse" style="font-size:28px;line-height:1;">&#x1F69B;</div>',
+    iconSize:[34,34],iconAnchor:[17,17],className:''
+  });
+  if(coords){_customerMarker=L.marker([coords.lat,coords.lng],{icon:_customerIcon}).addTo(_trackMap).bindPopup('You are here');}
   var provStart=coords?[coords.lat+0.008,coords.lng+0.008]:[37.783,-122.41];
-  _providerMarker=L.marker(provStart,{icon:_providerIcon}).addTo(_trackMap).bindPopup('Provider en route');
-  if(coords&&_trackMap){_trackMap.fitBounds([[coords.lat,coords.lng],provStart],{padding:[40,40]});}
+  _providerMarker=L.marker(provStart,{icon:_providerIcon}).addTo(_trackMap).bindPopup('Driver en route');
+  if(coords&&_trackMap){_trackMap.fitBounds([[coords.lat,coords.lng],provStart],{padding:[50,50]});}
+  // Simulate truck moving toward customer every 8s (until real socket data)
+  _simulateMovement(provStart,center);
+}
+
+var _simInterval=null;
+function _simulateMovement(from,to){
+  if(_simInterval)clearInterval(_simInterval);
+  var steps=20,step=0;
+  var dLat=(to[0]-from[0])/steps, dLng=(to[1]-from[1])/steps;
+  var cur=[from[0],from[1]];
+  _simInterval=setInterval(function(){
+    if(step>=steps-3){clearInterval(_simInterval);return;}
+    step++;
+    cur=[cur[0]+dLat,cur[1]+dLng];
+    if(_providerMarker){
+      _providerMarker.setLatLng(cur);
+      // Update distance display
+      if(coords){
+        var dist=_haversine(coords.lat,coords.lng,cur[0],cur[1]);
+        var el=document.getElementById("track-dist-display");
+        if(el)el.textContent=dist<0.1?"Almost there!":dist.toFixed(1)+" miles away";
+        // Unlock "almost there" status step
+        if(dist<0.5)_activateTimelineStep('tl-nearby','tl-t3');
+      }
+    }
+  },8000);
+}
+
+function _haversine(lat1,lng1,lat2,lng2){
+  var R=3958.8,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;
+  var a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
 function startTrackingSocket(jobId){
@@ -611,32 +817,77 @@ function startTrackingSocket(jobId){
       var ll=L.latLng(data.lat,data.lng);
       _providerMarker.setLatLng(ll);
       if(_trackMap)_trackMap.panTo(ll,{animate:true,duration:0.8});
+      // Real distance from socket
+      if(coords){
+        var dist=_haversine(coords.lat,coords.lng,data.lat,data.lng);
+        var el=document.getElementById("track-dist-display");
+        if(el)el.textContent=dist<0.1?"Almost there!":dist.toFixed(1)+" miles away";
+        if(dist<0.5)_activateTimelineStep('tl-nearby','tl-t3');
+      }
     }
+  });
+  _trackSocket.on('job_status',function(data){
+    if(data.status==='arrived')_activateTimelineStep('tl-arrived','tl-t4');
   });
 }
 
-function stopTrackingSocket(){if(_trackSocket){_trackSocket.disconnect();_trackSocket=null;}}
+function stopTrackingSocket(){
+  if(_trackSocket){_trackSocket.disconnect();_trackSocket=null;}
+  if(_simInterval){clearInterval(_simInterval);_simInterval=null;}
+}
+
+function _now(){var d=new Date();return d.getHours()+":"+(d.getMinutes()<10?"0":"")+d.getMinutes();}
+
+function _activateTimelineStep(id,timeId){
+  var el=document.getElementById(id);
+  if(el){el.classList.remove("opacity-35");el.classList.add("opacity-100");}
+  var t=document.getElementById(timeId);
+  if(t&&!t.textContent)t.textContent=_now();
+}
 
 // ── Show tracking screen ───────────────────────────────────────────────────
+var _etaInterval=null;
 function showTracking(name,eta,price,rating,proxyNumber){
   currentProvider={name:name,eta:eta,price:price,rating:rating};
   document.getElementById("track-name").textContent=name;
-  document.getElementById("track-eta").textContent=eta;
   document.getElementById("track-rating").textContent=rating;
   document.getElementById("track-price").textContent="Est. "+price;
   document.getElementById("track-price-esc").textContent=price;
   document.getElementById("final-provider").textContent="Provider: "+name+" - "+price;
+  // Populate timeline timestamps
+  document.getElementById("tl-t1").textContent=_now();
+  document.getElementById("tl-t2").textContent=_now();
+  // Parse ETA minutes
+  var etaMins=parseInt(eta)||20;
+  document.getElementById("track-eta").textContent=etaMins;
+  document.getElementById("track-dist-display").textContent="Locating your driver...";
+  // Countdown ETA every 60s
+  if(_etaInterval)clearInterval(_etaInterval);
+  _etaInterval=setInterval(function(){
+    var el=document.getElementById("track-eta");
+    if(!el)return;
+    var v=parseInt(el.textContent)||0;
+    if(v<=1){clearInterval(_etaInterval);el.textContent="Arriving";return;}
+    el.textContent=v-1;
+    // Animate bar
+    var bar=document.getElementById("eta-bar");
+    if(bar){var pct=Math.min(95,Math.round(((etaMins-(v-1))/etaMins)*100));bar.style.width=pct+"%";}
+  },60000);
   var callBtn=document.getElementById("track-call-btn");
   if(callBtn){
-    if(proxyNumber){callBtn.href="tel:"+proxyNumber;callBtn.title="Masked number — your real number stays private";}
+    if(proxyNumber){callBtn.href="tel:"+proxyNumber;callBtn.title="Masked — your real number stays private";}
     else{callBtn.removeAttribute("href");callBtn.style.opacity="0.4";callBtn.title="Call unavailable";}
   }
   if(mapsLink())document.getElementById("track-map-link").href=mapsLink();
   goTo("screen-tracking");
-  animateETA();
+  animateETA(etaMins);
   setTimeout(function(){initTrackingMap();startTrackingSocket(null);},200);
 }
-function animateETA(){var bar=document.getElementById("eta-bar"),pct=5;var iv=setInterval(function(){pct+=2;bar.style.width=pct+"%";if(pct>=95)clearInterval(iv);},800);}
+function animateETA(total){
+  var bar=document.getElementById("eta-bar"),pct=5;
+  var target=Math.max(10,Math.round(5/Math.max(total,1)*100));
+  var iv=setInterval(function(){pct+=1;bar.style.width=pct+"%";if(pct>=target)clearInterval(iv);},120);
+}
 // ── Rating ─────────────────────────────────────────────────────────────────
 var _selectedRating=0;
 function rateStar(n){_selectedRating=n;var stars=document.getElementById("stars").children;for(var i=0;i<stars.length;i++){stars[i].style.opacity=i<n?"1":"0.3";}}
@@ -693,7 +944,7 @@ function saveProfile(){var name=document.getElementById("profile-name").value;do
 function currentScreenId(){var active=document.querySelector(".screen.active");return active?active.id:"screen-dispatch";}
 
 // ── Reset full app ──────────────────────────────────────────────────────────
-function resetApp(){sentCode="";coords=null;mediaFile=null;mediaPreviewUrl=null;watchId=null;isLiveTracking=false;selectedMode=null;selectedCard=null;currentProvider=null;document.getElementById("phone-input").value="";document.getElementById("manual-addr").value="";document.getElementById("code-input").value="";document.getElementById("preview-img").classList.add("hidden");document.getElementById("preview-vid").classList.add("hidden");setLocBadge("Detecting...","#9ca3af");autoDetectLocation();goTo("screen-capture");}
+function resetApp(){sentCode="";coords=null;mediaFile=null;mediaPreviewUrl=null;watchId=null;isLiveTracking=false;selectedMode=null;selectedCard=null;currentProvider=null;if(_etaInterval){clearInterval(_etaInterval);_etaInterval=null;}stopTrackingSocket();document.getElementById("phone-input").value="";document.getElementById("manual-addr").value="";document.getElementById("code-input").value="";document.getElementById("preview-img").classList.add("hidden");document.getElementById("preview-vid").classList.add("hidden");setLocBadge("Detecting...","#9ca3af");autoDetectLocation();goTo("screen-capture");}
 // ── Skip verify (DEV ONLY — remove before production) ──────────────────────
 function skipVerify(){var phone=document.getElementById("phone-input").value,addr=document.getElementById("manual-addr").value;document.getElementById("dispatch-phone").textContent=phone;document.getElementById("mode-phone").textContent=phone?"Phone: "+phone:"--";document.getElementById("mode-loc").textContent=coords?"GPS: "+coords.lat.toFixed(4)+", "+coords.lng.toFixed(4):addr?addr:"Location: --";document.getElementById("mode-media").textContent=mediaFile?"File: "+mediaFile.name:"No media attached";if(coords){document.getElementById("final-loc").textContent="Location: "+coords.lat.toFixed(5)+", "+coords.lng.toFixed(5);}else if(addr){document.getElementById("final-loc").textContent="Location: "+addr;}document.getElementById("final-phone").textContent=phone?"Phone: "+phone:"";goTo("screen-dispatch");}
 
