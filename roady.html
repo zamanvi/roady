@@ -38,7 +38,7 @@
     .progress-dot{width:8px;height:8px;border-radius:50%;background:#374151;flex-shrink:0;}
     .progress-dot.done{background:#22c55e;}
     .progress-dot.active{background:#2563eb;}
-    #track-map{height:220px;border-radius:16px;overflow:hidden;background:#1a1a2e;}
+    #track-map{height:clamp(180px,50vw,240px);border-radius:16px;overflow:hidden;background:#1a1a2e;}
     /* CartoDB dark tiles — no filter needed */
     @keyframes truckPulse{0%,100%{filter:drop-shadow(0 0 4px rgba(34,197,94,.8))}50%{filter:drop-shadow(0 0 12px rgba(34,197,94,1))}}
     .truck-pulse{animation:truckPulse 1.5s ease-in-out infinite;}
@@ -46,18 +46,45 @@
     @keyframes dashFlow{to{stroke-dashoffset:-20}}
     .route-line{animation:dashFlow .5s linear infinite;}
     /* Responsive */
-    @media(min-width:480px){#track-map{height:260px;}}
+    @media(min-width:480px){#track-map{height:280px;}}
     @media(min-width:768px){
       body{background:#0a0a0a;display:flex;justify-content:center;}
       .screen{max-width:480px;width:100%;border-left:1px solid #111;border-right:1px solid #111;}
-      #track-map{height:300px;}
+      #track-map{height:320px;}
     }
-    /* Small phones (320px) */
+    /* Fluid typography — clamp scales with viewport on mobile-sized screens */
+    .text-6xl{font-size:clamp(2.25rem,13vw,3.75rem)!important;}
+    .text-5xl{font-size:clamp(1.875rem,11vw,3rem)!important;}
+    .text-4xl{font-size:clamp(1.5rem,9vw,2.25rem)!important;}
+    .text-3xl{font-size:clamp(1.25rem,7vw,1.875rem)!important;}
+    .text-2xl{font-size:clamp(1rem,5.5vw,1.5rem)!important;}
+    .text-xl{font-size:clamp(0.95rem,4.5vw,1.25rem)!important;}
+    /* Medium-small phones (≤400px) */
+    @media(max-width:400px){
+      .px-6{padding-left:1rem!important;padding-right:1rem!important;}
+      .p-6{padding:1rem!important;}
+      .p-5{padding:.875rem!important;}
+      .gap-3{gap:.625rem!important;}
+    }
+    /* Small phones (≤360px) */
     @media(max-width:360px){
-      .text-5xl{font-size:2.5rem!important;}
-      .text-3xl{font-size:1.5rem!important;}
-      .py-5{padding-top:1rem!important;padding-bottom:1rem!important;}
-      .text-lg{font-size:0.95rem!important;}
+      .px-4{padding-left:.75rem!important;padding-right:.75rem!important;}
+      .p-4{padding:.75rem!important;}
+      .py-5{padding-top:.875rem!important;padding-bottom:.875rem!important;}
+      .py-4{padding-top:.75rem!important;padding-bottom:.75rem!important;}
+      .text-lg{font-size:0.9rem!important;}
+      .text-base{font-size:0.875rem!important;}
+      .gap-2{gap:.375rem!important;}
+      .rounded-2xl{border-radius:.875rem!important;}
+    }
+    /* Ultra-tiny (≤320px) */
+    @media(max-width:320px){
+      .text-xl{font-size:0.9rem!important;}
+      .text-sm{font-size:0.8rem!important;}
+      .text-xs{font-size:0.7rem!important;}
+      .p-4{padding:.625rem!important;}
+      .py-4{padding-top:.625rem!important;padding-bottom:.625rem!important;}
+      .w-14{width:2.75rem!important;height:2.75rem!important;}
     }
     input,textarea,select{font-size:16px!important;} /* Prevent iOS zoom on focus */
   </style>
@@ -258,7 +285,7 @@
           Call
         </a>
       </div>
-      <div id="track-map" class="rounded-xl overflow-hidden mb-2" style="height:280px;"></div>
+      <div id="track-map" class="rounded-xl overflow-hidden mb-2"></div>
       <a id="track-map-link" href="https://maps.google.com" target="_blank" class="flex items-center justify-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition py-1">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#60a5fa"/></svg>
         Open in Google Maps
