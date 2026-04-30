@@ -42,6 +42,9 @@
     /* CartoDB dark tiles — no filter needed */
     @keyframes truckPulse{0%,100%{filter:drop-shadow(0 0 4px rgba(34,197,94,.8))}50%{filter:drop-shadow(0 0 12px rgba(34,197,94,1))}}
     .truck-pulse{animation:truckPulse 1.5s ease-in-out infinite;}
+    /* Animated route line (Uber-style) */
+    @keyframes dashFlow{to{stroke-dashoffset:-20}}
+    .route-line{animation:dashFlow .5s linear infinite;}
     /* Responsive */
     @media(min-width:480px){#track-map{height:260px;}}
     @media(min-width:768px){
@@ -748,7 +751,34 @@ function _confirmJobWithProvider(providerId,name,eta,price,rating){
 }
 // ── Live tracking map + socket ─────────────────────────────────────────────
 var _trackMap=null,_providerMarker=null,_customerMarker=null,_trackSocket=null;
-var _providerIcon=null,_customerIcon=null;
+var _providerIcon=null,_customerIcon=null,_routeLine=null;
+
+function _fetchRoute(fromLat,fromLng,toLat,toLng,cb){
+  var url='https://router.project.osrm.org/route/v1/driving/'
+    +fromLng+','+fromLat+';'+toLng+','+toLat
+    +'?overview=full&geometries=geojson';
+  fetch(url).then(function(r){return r.json();}).then(function(d){
+    if(d.routes&&d.routes[0]){
+      cb(d.routes[0].geometry.coordinates.map(function(c){return[c[1],c[0]];}));
+    }
+  }).catch(function(){});
+}
+
+function _updateRouteLine(provLat,provLng){
+  if(!_trackMap||!coords)return;
+  _fetchRoute(provLat,provLng,coords.lat,coords.lng,function(pts){
+    if(_routeLine){
+      _routeLine.setLatLngs(pts);
+    }else{
+      _routeLine=L.polyline(pts,{
+        color:'#22c55e',weight:4,opacity:.85,
+        dashArray:'10,8',className:'route-line'
+      }).addTo(_trackMap);
+      // Put route behind markers
+      _routeLine.bringToBack();
+    }
+  });
+}
 
 function initTrackingMap(){
   if(!window.L)return;
@@ -773,6 +803,8 @@ function initTrackingMap(){
   var provStart=coords?[coords.lat+0.008,coords.lng+0.008]:[37.783,-122.41];
   _providerMarker=L.marker(provStart,{icon:_providerIcon}).addTo(_trackMap).bindPopup('Driver en route');
   if(coords&&_trackMap){_trackMap.fitBounds([[coords.lat,coords.lng],provStart],{padding:[50,50]});}
+  // Draw initial route line
+  _updateRouteLine(provStart[0],provStart[1]);
   // Simulate truck moving toward customer every 8s (until real socket data)
   _simulateMovement(provStart,center);
 }
@@ -789,7 +821,8 @@ function _simulateMovement(from,to){
     cur=[cur[0]+dLat,cur[1]+dLng];
     if(_providerMarker){
       _providerMarker.setLatLng(cur);
-      // Update distance display
+      // Update route line + distance
+      _updateRouteLine(cur[0],cur[1]);
       if(coords){
         var dist=_haversine(coords.lat,coords.lng,cur[0],cur[1]);
         var el=document.getElementById("track-dist-display");
@@ -817,6 +850,7 @@ function startTrackingSocket(jobId){
       var ll=L.latLng(data.lat,data.lng);
       _providerMarker.setLatLng(ll);
       if(_trackMap)_trackMap.panTo(ll,{animate:true,duration:0.8});
+      _updateRouteLine(data.lat,data.lng);
       // Real distance from socket
       if(coords){
         var dist=_haversine(coords.lat,coords.lng,data.lat,data.lng);
@@ -834,6 +868,8 @@ function startTrackingSocket(jobId){
 function stopTrackingSocket(){
   if(_trackSocket){_trackSocket.disconnect();_trackSocket=null;}
   if(_simInterval){clearInterval(_simInterval);_simInterval=null;}
+  if(_routeLine&&_trackMap){_trackMap.removeLayer(_routeLine);_routeLine=null;}
+  if(_trackMap){_trackMap.remove();_trackMap=null;}
 }
 
 function _now(){var d=new Date();return d.getHours()+":"+(d.getMinutes()<10?"0":"")+d.getMinutes();}
