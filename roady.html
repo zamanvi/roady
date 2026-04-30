@@ -284,6 +284,18 @@ function autoDetectLocation(){
 window.addEventListener("DOMContentLoaded",function(){
   autoDetectLocation();
   initAddrAutocomplete();
+  // Returning user: silently validate saved token
+  if(_token){
+    api('/jobs/mine').then(function(res){
+      if(res.error||res.jobs===undefined){
+        // Token dead — wipe it, full flow
+        _token="";_customerId="";
+        localStorage.removeItem('roady_token');
+        localStorage.removeItem('roady_cid');
+      }
+      // Valid token: nothing changes visually — OTP skipped in handleSendCode
+    }).catch(function(){});
+  }
 });
 
 // ── Address autocomplete (Nominatim/OpenStreetMap — free, no key) ─────────────
@@ -362,10 +374,34 @@ function handleResend(){
 }
 // ── Send verification code ─────────────────────────────────────────────────
 function handleSendCode(resend){
-  var rawPhone=document.getElementById("phone-input").value.replace(/\D/g,"");
   var addr=document.getElementById("manual-addr").value.trim();
   var errEl=document.getElementById("capture-error");
   var btn=document.getElementById("send-code-btn");
+
+  // Returning user — token already valid, skip phone+OTP entirely
+  if(_token&&_customerId){
+    if(!coords&&!addr){
+      document.getElementById("manual-addr").style.outline="2px solid #f59e0b";
+      document.getElementById("manual-addr").focus();
+      if(!handleSendCode._locWarned){
+        handleSendCode._locWarned=true;
+        setTimeout(function(){handleSendCode._locWarned=false;},3000);
+        return;
+      }
+    }
+    document.getElementById("manual-addr").style.outline="";
+    handleSendCode._locWarned=false;
+    var locText=coords?"GPS: "+coords.lat.toFixed(4)+","+coords.lng.toFixed(4):addr||"--";
+    document.getElementById("dispatch-phone").textContent="Returning user";
+    document.getElementById("mode-phone").textContent="📱 Verified account";
+    document.getElementById("mode-loc").textContent="📍 "+locText;
+    document.getElementById("mode-media").textContent=mediaFile?"📸 "+mediaFile.name:"No photo";
+    document.getElementById("final-loc").textContent=locText;
+    goTo("screen-dispatch");
+    return;
+  }
+
+  var rawPhone=document.getElementById("phone-input").value.replace(/\D/g,"");
   if(!resend&&rawPhone.length<10){showError(errEl,"Enter valid 10-digit phone number.");return;}
   if(!coords&&!addr){
     // Soft nudge — don't block, just highlight and warn once
