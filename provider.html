@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <title>Roady Provider — Towing Owner Dashboard</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
@@ -91,6 +93,7 @@ input,textarea,select{color:#fff;}
 .map-dot{width:16px;height:16px;background:#22c55e;border-radius:50%;position:absolute;box-shadow:0 0 10px rgba(34,197,94,.8);}
 .map-dot-ring{width:16px;height:16px;background:rgba(34,197,94,.3);border-radius:50%;position:absolute;}
 input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
+input,textarea,select{font-size:16px!important;} /* Prevent iOS zoom */
 input[type=range]{-webkit-appearance:none;appearance:none;height:6px;background:#1f2937;border-radius:3px;outline:none;}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;background:#3b82f6;border-radius:50%;cursor:pointer;box-shadow:0 0 8px rgba(59,130,246,.5);}
 /* ── Responsive ─────────────────────────────────────────────────────────── */
@@ -132,7 +135,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 </div>
 <div id="form-signin" class="slide-up">
 <h2 class="text-2xl font-black mb-1">Welcome back</h2>
-<p class="text-gray-500 text-sm mb-6">Sign in to your towing dashboard</p>
+<p class="text-gray-500 text-sm mb-6">Your jobs are waiting — sign in to start</p>
 <div class="space-y-3 mb-4">
 <div><label class="text-xs text-gray-500 uppercase tracking-widest font-semibold block mb-1.5">Phone or Email</label>
 <input id="si-user" type="text" placeholder="(555) 123-4567 or you@email.com" class="inp"/></div>
@@ -140,12 +143,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 <input id="si-pass" type="password" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" class="inp"/></div>
 </div>
 <p id="si-err" class="text-red-400 text-xs mb-3 hidden"></p>
-<button onclick="doSignIn()" class="btn-green w-full py-4 text-base mb-4 pulse-cta">Sign In to Dashboard</button>
+<button onclick="doSignIn()" class="btn-green w-full py-4 text-base mb-4 pulse-cta">Sign In &rarr;</button>
 <p class="text-center text-xs text-gray-600">Forgot password? <button class="text-green-400 underline font-semibold">Reset via SMS</button></p>
 </div>
 <div id="form-signup" class="hidden">
 <h2 class="text-2xl font-black mb-1">Join Roady</h2>
-<p class="text-gray-500 text-sm mb-5">Get jobs sent directly to you</p>
+<p class="text-gray-500 text-sm mb-5">Start earning in minutes — jobs come to you</p>
 <div class="space-y-3 mb-4">
 <div><label class="text-xs text-gray-500 uppercase tracking-widest font-semibold block mb-1.5">Company Name <span class="text-red-500">*</span></label><input id="su-co" type="text" placeholder="Houston Quick Tow LLC" class="inp"/></div>
 <div><label class="text-xs text-gray-500 uppercase tracking-widest font-semibold block mb-1.5">Owner Full Name <span class="text-red-500">*</span></label><input id="su-name" type="text" placeholder="John Martinez" class="inp"/></div>
@@ -158,7 +161,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 <div>
 <label class="text-xs text-gray-500 uppercase tracking-widest font-semibold block mb-1.5">Shop / Yard Address <span class="text-red-500">*</span></label>
 <input id="su-shop" type="text" placeholder="123 Industrial Blvd, Houston TX 77001" class="inp"/>
-<p class="text-xs text-gray-700 mt-1">&#x1F4CD; Your truck's home base — used to calculate ETA for nearby customers</p>
+<p class="text-xs text-gray-700 mt-1">&#x1F4CD; Where your truck parks when idle — sets your ETA for nearby jobs</p>
 </div>
 <div><label class="text-xs text-gray-500 uppercase tracking-widest font-semibold block mb-1.5">DOT / State Towing License # <span class="text-red-500">*</span></label><input id="su-dot" type="text" placeholder="USDOT-1234567 or TX-TW-8901" class="inp"/></div>
 <div><label class="text-xs text-gray-500 uppercase tracking-widest font-semibold block mb-1.5">Email</label><input id="su-em" type="email" placeholder="you@company.com" class="inp"/></div>
@@ -174,9 +177,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 </div>
 <div class="mt-auto pt-8 grid grid-cols-3 gap-3 text-center">
 <div class="card p-3"><div class="text-2xl mb-1">&#x1F4B5;</div><p class="text-xs text-gray-500 font-semibold">Weekly<br/>Payouts</p></div>
-<div class="card p-3"><div class="text-2xl mb-1">&#x1F4F1;</div><p class="text-xs text-gray-500 font-semibold">Instant<br/>Job Alerts</p></div>
+<div class="card p-3"><div class="text-2xl mb-1">&#x26A1;</div><p class="text-xs text-gray-500 font-semibold">Instant<br/>Job Alerts</p></div>
 <div class="card p-3"><div class="text-2xl mb-1">&#x1F512;</div><p class="text-xs text-gray-500 font-semibold">Escrow<br/>Protected</p></div>
 </div>
+<p class="text-center text-xs text-green-700 font-bold mt-4 tracking-wide">Stuck? We move.</p>
 </div>
 </div>
 <!-- ═══ DASHBOARD ═══ -->
@@ -194,7 +198,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 </div>
 <div id="offline-banner" class="mx-5 mb-4 hidden bg-yellow-950 border border-yellow-800 rounded-2xl px-4 py-3 flex items-center gap-3">
 <span class="text-xl">&#x26A0;&#xFE0F;</span>
-<div><p class="text-sm font-bold text-yellow-300">You are Offline</p><p class="text-xs text-yellow-600">Toggle ON above to receive job requests</p></div>
+<div><p class="text-sm font-bold text-yellow-300">You're Offline</p><p class="text-xs text-yellow-600">Flip the switch above to start getting jobs</p></div>
 </div>
 <div id="active-banner" class="mx-5 mb-4 hidden">
 <div class="bg-green-950 border border-green-700 rounded-2xl p-4">
@@ -216,8 +220,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 </div>
 </div>
 <div class="px-5 flex items-center justify-between mb-3">
-<p class="text-sm font-black">Incoming Requests</p>
-<div class="flex items-center gap-2"><span class="w-2 h-2 bg-red-500 rounded-full blink"></span><span id="req-count" class="text-xs font-bold text-red-400">2 new</span></div>
+<p class="text-sm font-black">New Jobs</p>
+<div class="flex items-center gap-2"><span class="w-2 h-2 bg-red-500 rounded-full blink"></span><span id="req-count" class="text-xs font-bold text-red-400">2 live</span></div>
 </div>
 <div class="px-5 lg:grid lg:grid-cols-2 lg:gap-4">
 <div class="card-red p-4 mb-3 lg:mb-0" id="job-card-1">
@@ -225,14 +229,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 <div class="flex items-center gap-2"><span class="badge badge-red">&#x1F6A8; URGENT</span><span class="text-xs text-gray-600">1 min ago</span></div>
 <span class="text-lg font-black text-green-400">$95</span>
 </div>
-<p class="text-xs text-gray-600 mb-2">&#x1F916; AI auto-assigned you — price is fixed. Accept or decline.</p>
+<p class="text-xs text-gray-600 mb-2">&#x1F916; AI picked you — fixed price, guaranteed by escrow.</p>
 <div class="timer-bar urgent mb-3" id="timer1" style="width:85%;"></div>
 <div class="flex items-start gap-3 mb-3">
 <div class="w-10 h-10 rounded-xl bg-red-950 flex items-center justify-center text-lg flex-shrink-0">&#x1F6D1;</div>
 <div class="flex-1">
 <p class="font-black text-white text-sm">Flat Tire on Highway</p>
 <p class="text-xs text-gray-500">&#x1F4CD; I-45 N near Shepherd Dr, Houston</p>
-<p class="text-xs text-gray-600 mt-0.5">Customer has photo uploaded</p>
+<p class="text-xs text-gray-600 mt-0.5">&#x1F4F8; Photo uploaded — AI analyzed</p>
 </div>
 </div>
 <div class="grid grid-cols-3 gap-2 text-center mb-3">
@@ -307,8 +311,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 </div>
 <div id="no-jobs" class="hidden text-center py-10">
 <div class="text-4xl mb-3">&#x1F7E2;</div>
-<p class="text-gray-400 font-semibold text-sm">No new requests</p>
-<p class="text-xs text-gray-700 mt-1">Stay online — jobs appear here instantly</p>
+<p class="text-gray-400 font-semibold text-sm">All clear — no jobs right now</p>
+<p class="text-xs text-gray-700 mt-1">Stay online. New requests appear here the moment they come in.</p>
 </div>
 <!-- BIDS PENDING SECTION -->
 <div id="bids-section" class="hidden mt-2 mb-3">
@@ -319,7 +323,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 <div id="bids-list" class="space-y-2"></div>
 </div>
 <div class="card p-4 mt-2">
-<p class="text-xs text-gray-600 uppercase tracking-widest font-semibold mb-3">Today at a Glance</p>
+<p class="text-xs text-gray-600 uppercase tracking-widest font-semibold mb-3">Today's Stats</p>
 <div class="grid grid-cols-2 gap-2">
 <div class="flex items-center gap-2"><span class="text-base">&#x2B50;</span><div><p class="text-xs text-gray-500">Avg Rating</p><p class="text-sm font-black text-white">4.8 / 5.0</p></div></div>
 <div class="flex items-center gap-2"><span class="text-base">&#x2705;</span><div><p class="text-xs text-gray-500">Completion</p><p class="text-sm font-black text-white">96%</p></div></div>
@@ -351,7 +355,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 </div>
 <div class="px-5 mb-4">
 <div class="card p-4">
-<p class="text-xs text-gray-600 uppercase tracking-widest font-semibold mb-3">Customer Info</p>
+<p class="text-xs text-gray-600 uppercase tracking-widest font-semibold mb-3">Your Customer</p>
 <div class="flex items-center gap-3 mb-3">
 <div class="w-12 h-12 rounded-full bg-gray-900 border border-gray-700 flex items-center justify-center text-2xl">&#x1F464;</div>
 <div class="flex-1">
@@ -366,38 +370,38 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 </div>
 <div class="px-5 mb-4">
 <div class="card p-4">
-<p class="text-xs text-gray-600 uppercase tracking-widest font-semibold mb-3">Job Progress</p>
+<p class="text-xs text-gray-600 uppercase tracking-widest font-semibold mb-3">Job Status</p>
 <div class="space-y-3" id="job-steps">
 <div class="flex items-center gap-3">
 <div class="w-7 h-7 rounded-full bg-green-700 flex items-center justify-center text-xs font-bold flex-shrink-0">&#x2714;</div>
-<div><p class="text-sm font-semibold text-white">Job Accepted</p><p class="text-xs text-gray-600">Escrow confirmed</p></div>
+<div><p class="text-sm font-semibold text-white">Accepted</p><p class="text-xs text-gray-600">Payment secured in escrow</p></div>
 </div>
 <div class="flex items-center gap-3" id="step-en-route">
 <div class="w-7 h-7 rounded-full bg-blue-700 flex items-center justify-center text-xs font-bold flex-shrink-0 blink">&#x1F69B;</div>
-<div><p class="text-sm font-semibold text-white">En Route</p><p class="text-xs text-gray-600">Heading to customer</p></div>
+<div><p class="text-sm font-semibold text-white">En Route</p><p class="text-xs text-gray-600">Customer can see you moving</p></div>
 </div>
 <div class="flex items-center gap-3 opacity-30" id="step-arrived">
 <div class="w-7 h-7 rounded-full bg-gray-800 flex items-center justify-center text-xs flex-shrink-0">3</div>
-<div><p class="text-sm font-semibold">Arrived</p><p class="text-xs text-gray-600">Tap when on scene</p></div>
+<div><p class="text-sm font-semibold">On Scene</p><p class="text-xs text-gray-600">Tap "I'm Here" when you arrive</p></div>
 </div>
 <div class="flex items-center gap-3 opacity-30" id="step-done">
 <div class="w-7 h-7 rounded-full bg-gray-800 flex items-center justify-center text-xs flex-shrink-0">4</div>
-<div><p class="text-sm font-semibold">Job Complete</p><p class="text-xs text-gray-600">Payment released</p></div>
+<div><p class="text-sm font-semibold">Done — Get Paid</p><p class="text-xs text-gray-600">Customer releases payment</p></div>
 </div>
 </div>
 </div>
 </div>
 <div class="px-5 space-y-3">
-<button id="btn-arrived" onclick="markArrived()" class="btn-green w-full py-4 text-base">&#x1F4CD; Mark Arrived</button>
-<button id="btn-complete" onclick="markComplete()" class="hidden btn-green w-full py-4 text-base">&#x2705; Mark Job Complete — Release Payment</button>
-<button onclick="reportIssue()" class="btn-ghost w-full py-3 text-sm">&#x26A0; Report Issue</button>
+<button id="btn-arrived" onclick="markArrived()" class="btn-green w-full py-4 text-base">&#x1F4CD; I'm Here — Mark Arrived</button>
+<button id="btn-complete" onclick="markComplete()" class="hidden btn-green w-full py-4 text-base">&#x2705; Job Done — Release Payment</button>
+<button onclick="reportIssue()" class="btn-ghost w-full py-3 text-sm">&#x26A0;&#xFE0F; Report a Problem</button>
 </div>
 </div>
 </div>
 <!-- ═══ EARNINGS ═══ -->
 <div id="screen-earnings" class="screen flex-col" style="background:#000;">
 <div class="flex flex-col flex-1 w-full max-w-5xl mx-auto px-5 pt-5 pb-20 overflow-y-auto">
-<h2 class="text-xl font-black mb-5">Earnings</h2>
+<h2 class="text-xl font-black mb-5">Your Earnings</h2>
 <div class="flex bg-gray-950 border border-gray-800 rounded-2xl p-1 mb-5 lg:max-w-xs">
 <button id="ep-today" onclick="earnPeriod('today')" class="flex-1 py-2 rounded-xl text-xs font-bold text-gray-500 transition">Today</button>
 <button id="ep-week" onclick="earnPeriod('week')" class="flex-1 py-2 rounded-xl text-xs font-bold bg-green-600 text-white transition">Week</button>
@@ -415,7 +419,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 </div>
 </div>
 <div class="card p-4 mb-4">
-<p class="text-xs text-gray-600 uppercase tracking-widest font-semibold mb-3">Daily Breakdown</p>
+<p class="text-xs text-gray-600 uppercase tracking-widest font-semibold mb-3">Day by Day</p>
 <div class="flex items-end justify-between gap-1.5" style="height:72px;">
 <div class="bar-col"><div class="bar-fill" style="height:35%;"></div><span class="text-xs text-gray-600">Mon</span></div>
 <div class="bar-col"><div class="bar-fill" style="height:60%;"></div><span class="text-xs text-gray-600">Tue</span></div>
@@ -443,7 +447,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 <p class="text-sm font-black text-white">&#x1F4B0; Refer &amp; Earn</p>
 <span class="badge badge-blue">AFFILIATE</span>
 </div>
-<p class="text-xs text-gray-500 mb-4">Refer towing companies to Roady. Earn <span class="text-green-400 font-bold">$50</span> when they join + <span class="text-green-400 font-bold">1%</span> of their revenue for 3 months.</p>
+<p class="text-xs text-gray-500 mb-4">Bring another tow company onto Roady. Get <span class="text-green-400 font-bold">$50</span> when they complete their first job + <span class="text-green-400 font-bold">1%</span> of their revenue for 90 days.</p>
 <!-- Stats -->
 <div class="grid grid-cols-3 gap-2 mb-4">
 <div class="bg-black bg-opacity-50 rounded-xl p-3 text-center"><p class="text-lg font-black text-green-400" id="p-aff-refs">0</p><p class="text-xs text-gray-600">Referred</p></div>
@@ -469,7 +473,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 </div>
 <button onclick="openProvAffDashboard()" class="w-full py-3 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2" style="background:linear-gradient(90deg,#1d4ed8,#2563eb);color:#fff;">&#x1F4CA; View Full Affiliate Dashboard &rarr;</button>
 </div>
-<p class="text-xs text-gray-600 uppercase tracking-widest font-semibold mb-3">Job History</p>
+<p class="text-xs text-gray-600 uppercase tracking-widest font-semibold mb-3">Recent Jobs</p>
 <div class="space-y-2">
 <div class="card p-3 flex items-center justify-between">
 <div class="flex-1 min-w-0">
@@ -551,7 +555,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 </div>
 </div>
 <div class="card p-4 mb-4">
-<p class="text-xs text-gray-600 uppercase tracking-widest font-semibold mb-3">Company Info</p>
+<p class="text-xs text-gray-600 uppercase tracking-widest font-semibold mb-3">Business Details</p>
 <div class="space-y-3">
 <div><label class="text-xs text-gray-500 block mb-1 font-semibold">Company Name</label><input id="p-co" type="text" placeholder="Your Towing Company LLC" class="inp"/></div>
 <div><label class="text-xs text-gray-500 block mb-1 font-semibold">Owner Full Name</label><input id="p-owner" type="text" placeholder="Your Name" class="inp"/></div>
@@ -623,11 +627,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 </div>
 <div class="mt-3 bg-yellow-950 border border-yellow-800 rounded-xl px-3 py-2.5 flex items-start gap-2">
 <span class="text-sm">&#x26A0;</span>
-<p class="text-xs text-yellow-400">All towing operators must comply with FMCSA regulations and carry valid commercial auto insurance. Roady verifies before job activation.</p>
+<p class="text-xs text-yellow-400">All providers must comply with FMCSA rules and hold valid commercial auto insurance. Roady verifies before activating your account.</p>
 </div>
 </div>
 <div class="card p-4 mb-4">
-<p class="text-xs text-gray-600 uppercase tracking-widest font-semibold mb-3">Truck / Fleet Info</p>
+<p class="text-xs text-gray-600 uppercase tracking-widest font-semibold mb-3">Your Truck</p>
 <div class="space-y-3">
 <div class="grid grid-cols-3 gap-2">
 <div><label class="text-xs text-gray-500 block mb-1 font-semibold">Year</label><input id="p-yr" type="number" class="inp text-center" placeholder="2021"/></div>
@@ -649,7 +653,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 </div>
 <div class="card p-4 mb-4">
 <p class="text-xs text-gray-600 uppercase tracking-widest font-semibold mb-3">Services Offered</p>
-<p class="text-xs text-gray-500 mb-3">Tap to enable — only matching jobs sent to you</p>
+<p class="text-xs text-gray-500 mb-3">Tap to toggle — only matching jobs reach you</p>
 <div class="flex flex-wrap gap-2" id="svc-chips">
 <span class="svc-chip on" onclick="toggleSvc(this)">Flatbed Tow</span>
 <span class="svc-chip " onclick="toggleSvc(this)">Wheel-Lift Tow</span>
@@ -664,7 +668,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 </div>
 </div>
 <div class="card p-4 mb-4">
-<p class="text-xs text-gray-600 uppercase tracking-widest font-semibold mb-3">Service Area &amp; Rates</p>
+<p class="text-xs text-gray-600 uppercase tracking-widest font-semibold mb-3">Coverage &amp; Rates</p>
 <div class="space-y-3">
 <div><label class="text-xs text-gray-500 block mb-1 font-semibold">Coverage Radius</label>
 <select id="p-radius" class="inp"><option>10 miles</option><option selected>25 miles</option><option>50 miles</option><option>75 miles</option><option>100 miles</option></select></div>
@@ -755,7 +759,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 <p class="text-xs text-gray-600 uppercase tracking-widest font-semibold mb-3">Payout Information</p>
 <div class="bg-blue-950 border border-blue-800 rounded-xl px-3 py-2.5 mb-3 flex items-start gap-2">
 <span class="text-sm">&#x1F512;</span>
-<p class="text-xs text-blue-300">Bank info encrypted and processed via Stripe. Roady never stores full account numbers.</p>
+<p class="text-xs text-blue-300">Bank info encrypted via Stripe. Roady never sees or stores your full account number.</p>
 </div>
 <div class="space-y-3">
 <div><label class="text-xs text-gray-500 block mb-1 font-semibold">Bank Routing # (ABA)</label><input id="p-routing" type="text" class="inp" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;"/></div>
@@ -763,7 +767,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 <div><label class="text-xs text-gray-500 block mb-1 font-semibold">Payout Schedule</label><select id="p-payout" class="inp"><option selected>Weekly (every Monday)</option><option>Bi-weekly</option><option>Monthly</option></select></div>
 </div>
 </div>
-<button onclick="saveProfile()" class="btn-green w-full py-4 text-base mb-3">Save All Settings</button>
+<button onclick="saveProfile()" class="btn-green w-full py-4 text-base mb-3">Save Changes &rarr;</button>
 <p id="prof-saved-msg" class="text-green-400 text-xs text-center mb-4 hidden">&#x2713; Saved successfully</p>
 <div class="card p-4 mb-4" style="border-color:#1e293b;">
 <p class="text-xs text-gray-500 uppercase tracking-widest font-semibold mb-3">Admin &amp; Tools</p>
@@ -772,7 +776,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 </div>
 <div class="card p-4 mb-6" style="border-color:#3f1111;">
 <p class="text-xs text-red-600 uppercase tracking-widest font-semibold mb-3">Account</p>
-<button onclick="if(confirm('Pause your account? You will stop receiving jobs until you go back Online.'))alert('Account paused. Toggle Online in Dashboard to resume.')" class="btn-ghost w-full py-3 text-sm text-red-500 border-red-900 mb-2">Pause Account</button>
+<button onclick="if(confirm('Pause your account? You will stop receiving jobs until you go back Online.'))alert('Account paused. Flip the switch on Dashboard to resume.')" class="btn-ghost w-full py-3 text-sm text-red-500 border-red-900 mb-2">Pause Account</button>
 <button onclick="signOutProvider()" class="text-red-500 text-xs underline w-full text-center py-1">Sign Out</button>
 </div>
 </div>
@@ -780,10 +784,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 <!-- ═══ BOTTOM NAV ═══ -->
 <div id="bottom-nav" class="hidden fixed bottom-0 left-0 right-0 z-50" style="background:#000;border-top:1px solid #111;">
 <div class="flex max-w-md mx-auto">
-<button class="nav-btn active" id="nav-dashboard" onclick="showTab('dashboard')"><div class="text-xl mb-0.5">&#x1F3E0;</div>Dashboard</button>
+<button class="nav-btn active" id="nav-dashboard" onclick="showTab('dashboard')"><div class="text-xl mb-0.5">&#x1F3E0;</div>Home</button>
 <button class="nav-btn" id="nav-job" onclick="showTab('job')"><div class="text-xl mb-0.5">&#x1F69B;</div>Active Job</button>
 <button class="nav-btn" id="nav-earnings" onclick="showTab('earnings')"><div class="text-xl mb-0.5">&#x1F4B0;</div>Earnings</button>
-<button class="nav-btn" id="nav-profile" onclick="showTab('profile')"><div class="text-xl mb-0.5">&#x2699;&#xFE0F;</div>Profile</button>
+<button class="nav-btn" id="nav-profile" onclick="showTab('profile')"><div class="text-xl mb-0.5">&#x2699;&#xFE0F;</div>Settings</button>
 </div>
 </div>
 <script>
