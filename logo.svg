@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <radialGradient id="bgGrad" cx="50%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#1a3d1a"/>
+      <stop offset="100%" stop-color="#071007"/>
+    </radialGradient>
+    <radialGradient id="circleGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0d1f0d"/>
+      <stop offset="100%" stop-color="#060e06"/>
+    </radialGradient>
+    <linearGradient id="rGrad" x1="10%" y1="0%" x2="90%" y2="100%">
+      <stop offset="0%" stop-color="#86efac"/>
+      <stop offset="40%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#15803d"/>
+    </linearGradient>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4ade80" stop-opacity="0.9"/>
+      <stop offset="60%" stop-color="#22c55e" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#15803d" stop-opacity="0.2"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Outer rounded square -->
+  <rect width="200" height="200" rx="44" fill="url(#bgGrad)"/>
+  <!-- Glass edge highlight -->
+  <rect x="1.5" y="1.5" width="197" height="197" rx="43" fill="none" stroke="#4ade80" stroke-opacity="0.15" stroke-width="1.5"/>
+
+  <!-- Dark circle bg -->
+  <circle cx="100" cy="100" r="78" fill="url(#circleGrad)"/>
+  <!-- Glowing ring -->
+  <circle cx="100" cy="100" r="78" fill="none" stroke="url(#ringGrad)" stroke-width="2.5" filter="url(#glow)"/>
+  <!-- Inner faint ring -->
+  <circle cx="100" cy="100" r="74" fill="none" stroke="#22c55e" stroke-opacity="0.08" stroke-width="1"/>
+
+  <!-- R Letter — centered -->
+  <path d="M68 54 L68 146 L82 146 L82 108 L97 108 L120 146 L136 146 L112 106 C125 101 132 91 132 76 C132 63 124 54 110 54 Z
+           M82 66 L82 97 L106 97 C115 97 118 92 118 82 C118 72 115 66 106 66 Z"
+        fill="url(#rGrad)" filter="url(#softGlow)"/>
+</svg>
